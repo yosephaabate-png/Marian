@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyMarian — Ethiopian Student Learning Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { height: 100%; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f5f5f3; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; }
+    input, select, textarea { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- Load components in order -->
+<script type="text/babel" src="components/shared.jsx"></script>
+<script type="text/babel" src="components/landing.jsx"></script>
+<script type="text/babel" src="components/dashboard.jsx"></script>
+<script type="text/babel" src="components/player.jsx"></script>
+<script type="text/babel" src="components/tools.jsx"></script>
+<script type="text/babel" src="components/quiz.jsx"></script>
+<script type="text/babel" src="components/tutor.jsx"></script>
+<script type="text/babel" src="components/signup.jsx"></script>
+<script type="text/babel" src="components/payment.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "primaryColor": "#0d5c3a",
+  "accentColor": "#D4AF37",
+  "darkBg": "#1a3a2a",
+  "fontScale": 1,
+  "showAmharic": true,
+  "sidebarCollapsed": false
+}/*EDITMODE-END*/;
+
+const NAV_ITEMS = [
+  { key: 'landing',   icon: '⌂', label: 'Landing Page' },
+  { key: 'dashboard', icon: '⊞', label: 'Dashboard' },
+  { key: 'player',    icon: '▶', label: 'Course Player' },
+  { key: 'tools',     icon: '⚙', label: 'Interactive Tools' },
+  { key: 'quiz',      icon: '?', label: 'Quiz & Assessment' },
+  { key: 'tutor',     icon: '◈', label: 'Tutor Sessions' },
+  { key: 'signup',    icon: '✦', label: 'Signup / Profile' },
+  { key: 'payment',   icon: '₿', label: 'Payment' },
+];
+
+function App() {
+  const [page, setPage] = React.useState('landing');
+  const [grade, setGrade] = React.useState(9);
+  const [sidebarOpen, setSidebarOpen] = React.useState(true);
+  const [tweaks, setTweaks] = useTweaks(TWEAK_DEFAULTS);
+
+  // Apply tweak colors dynamically
+  const primaryColor = tweaks.primaryColor;
+  const accentColor = tweaks.accentColor;
+
+  const navigate = (target) => setPage(target);
+
+  // Landing page renders full-screen without app chrome
+  if (page === 'landing') {
+    return (
+      <div style={{ height: '100vh', overflow: 'auto', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+        <LandingPage navigate={navigate} />
+        <TweaksPanel tweaks={tweaks} setTweak={(k, v) => setTweaks(t => ({ ...t, [k]: v }))}>
+          <TweakSection title="Navigation">
+            <TweakRadio
+              label="Active page"
+              id="activePage"
+              options={['landing', 'dashboard', 'player', 'tools', 'quiz', 'tutor', 'signup', 'payment']}
+              value={page}
+              onChange={v => setPage(v)}
+            />
+          </TweakSection>
+        </TweaksPanel>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+      {/* Sidebar */}
+      <aside style={{
+        width: sidebarOpen ? 220 : 64,
+        background: BRAND.night,
+        display: 'flex',
+        flexDirection: 'column',
+        flexShrink: 0,
+        transition: 'width 0.25s ease',
+        overflow: 'hidden',
+        position: 'relative',
+        zIndex: 10,
+      }}>
+        {/* Logo area */}
+        <div style={{
+          padding: sidebarOpen ? '22px 18px 16px' : '22px 12px 16px',
+          borderBottom: '1px solid #ffffff18',
+          position: 'relative',
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}>
+          <EthiopianPattern opacity={0.07} color={BRAND.gold} />
+          <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+            {/* Logo mark: Lalibela cross */}
+            <div style={{
+              width: 36, height: 36, borderRadius: 8,
+              background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.dark})`,
+              border: `1.5px solid ${BRAND.gold}55`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect x="8" y="2" width="4" height="16" fill={BRAND.gold} rx="0.5" opacity="0.9" />
+                <rect x="2" y="8" width="16" height="4" fill={BRAND.gold} rx="0.5" opacity="0.9" />
+                <rect x="6.5" y="6.5" width="3" height="3" fill={BRAND.gold} opacity="0.5" />
+                <rect x="10.5" y="6.5" width="3" height="3" fill={BRAND.gold} opacity="0.5" />
+                <rect x="6.5" y="10.5" width="3" height="3" fill={BRAND.gold} opacity="0.5" />
+                <rect x="10.5" y="10.5" width="3" height="3" fill={BRAND.gold} opacity="0.5" />
+              </svg>
+            </div>
+            {sidebarOpen && (
+              <div>
+                <div style={{ color: '#fff', fontFamily: 'Playfair Display, Georgia, serif', fontSize: 17, fontWeight: 700, lineHeight: 1.1 }}>MyMarian</div>
+                <div style={{ color: `${BRAND.gold}99`, fontSize: 9.5, fontWeight: 600, letterSpacing: 1 }}>LEARNING PLATFORM</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Nav items */}
+        <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
+          {NAV_ITEMS.map(item => {
+            const active = page === item.key;
+
+            return (
+              <button
+                key={item.key}
+                onClick={() => setPage(item.key)}
+                title={item.label}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: sidebarOpen ? '10px 12px' : '10px 0',
+                  justifyContent: sidebarOpen ? 'flex-start' : 'center',
+                  borderRadius: 8, border: 'none',
+                  background: active ? `${BRAND.primary}` : 'transparent',
+                  color: active ? '#fff' : '#ffffff70',
+                  fontFamily: 'Plus Jakarta Sans, sans-serif',
+                  fontWeight: active ? 700 : 500, fontSize: 14,
+                  cursor: 'pointer', width: '100%',
+                  transition: 'all 0.15s',
+                  borderLeft: active ? `3px solid ${BRAND.gold}` : '3px solid transparent',
+                }}
+              >
+                <span style={{ fontSize: 16, width: 20, textAlign: 'center', flexShrink: 0 }}>{item.icon}</span>
+                {sidebarOpen && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}>{item.label}</span>}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Grade indicator at bottom */}
+        {sidebarOpen && (
+          <div style={{ padding: '12px 14px', borderTop: '1px solid #ffffff18', flexShrink: 0 }}>
+            <div style={{ fontSize: 10, color: '#ffffff40', fontWeight: 600, letterSpacing: 0.5, marginBottom: 6 }}>CURRENT GRADE</div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {[9,10,11,12].map(g => (
+                <button
+                  key={g}
+                  onClick={() => setGrade(g)}
+                  style={{
+                    flex: 1, padding: '5px 0', borderRadius: 5,
+                    border: 'none',
+                    background: grade === g ? BRAND.gold : '#ffffff18',
+                    color: grade === g ? BRAND.dark : '#ffffff60',
+                    fontFamily: 'Plus Jakarta Sans, sans-serif',
+                    fontWeight: 700, fontSize: 11, cursor: 'pointer',
+                  }}
+                >{g}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Collapse toggle */}
+        <button
+          onClick={() => setSidebarOpen(o => !o)}
+          style={{
+            background: '#ffffff0e', border: 'none', color: '#ffffff60',
+            padding: '10px', cursor: 'pointer', fontSize: 14,
+            fontFamily: 'inherit', borderTop: '1px solid #ffffff12',
+            flexShrink: 0,
+          }}
+        >{sidebarOpen ? '◀ Collapse' : '▶'}</button>
+      </aside>
+
+      {/* Main content */}
+      <main style={{ flex: 1, overflowY: 'auto', background: '#f8f9f7', display: 'flex', flexDirection: 'column' }}>
+        {/* Top bar */}
+        <header style={{
+          background: '#fff',
+          borderBottom: `1px solid ${BRAND.border}`,
+          padding: '0 28px',
+          height: 52,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexShrink: 0,
+          position: 'sticky',
+          top: 0,
+          zIndex: 5,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 12, color: BRAND.muted }}>
+              {NAV_ITEMS.find(n => n.key === page)?.icon}
+            </span>
+            <span style={{ fontWeight: 700, fontSize: 14, color: BRAND.dark }}>
+              {NAV_ITEMS.find(n => n.key === page)?.label}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <span style={{ fontSize: 12, color: BRAND.muted }}>Grade {grade}</span>
+            <div style={{
+              width: 1, height: 18, background: BRAND.border,
+            }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Avatar name="Selamawit Tadesse" size={28} bg={BRAND.primary} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.dark }}>Selamawit T.</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {page === 'landing'   && <LandingPage navigate={navigate} />}
+          {page === 'dashboard' && <Dashboard grade={grade} setGrade={setGrade} navigate={navigate} />}
+          {page === 'player'    && <CoursePlayer navigate={navigate} />}
+          {page === 'tools'     && <InteractiveTools grade={grade} navigate={navigate} />}
+          {page === 'quiz'      && <Quiz navigate={navigate} />}
+          {page === 'tutor'     && <TutorSessions grade={grade} />}
+          {page === 'signup'    && <Signup navigate={navigate} />}
+          {page === 'payment'   && <PaymentPage navigate={navigate} />}
+        </div>
+      </main>
+
+      {/* Tweaks panel */}
+      <TweaksPanel tweaks={tweaks} setTweak={(k, v) => setTweaks(t => ({ ...t, [k]: v }))}>
+        <TweakSection title="Brand Colors">
+          <TweakColor label="Primary Green" id="primaryColor" value={tweaks.primaryColor} onChange={v => setTweaks(t => ({ ...t, primaryColor: v }))} />
+          <TweakColor label="Gold Accent" id="accentColor" value={tweaks.accentColor} onChange={v => setTweaks(t => ({ ...t, accentColor: v }))} />
+          <TweakColor label="Dark Header" id="darkBg" value={tweaks.darkBg} onChange={v => setTweaks(t => ({ ...t, darkBg: v }))} />
+        </TweakSection>
+        <TweakSection title="Layout">
+          <TweakToggle label="Show Amharic text" id="showAmharic" value={tweaks.showAmharic} onChange={v => setTweaks(t => ({ ...t, showAmharic: v }))} />
+          <TweakToggle label="Sidebar collapsed" id="sidebarCollapsed" value={tweaks.sidebarCollapsed} onChange={v => { setTweaks(t => ({ ...t, sidebarCollapsed: v })); setSidebarOpen(!v); }} />
+        </TweakSection>
+        <TweakSection title="Navigation">
+          <TweakRadio
+            label="Active page"
+            id="activePage"
+            options={['landing', 'dashboard', 'player', 'tools', 'quiz', 'tutor', 'signup', 'payment']}
+            value={page}
+            onChange={v => setPage(v)}
+          />
+        </TweakSection>
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
