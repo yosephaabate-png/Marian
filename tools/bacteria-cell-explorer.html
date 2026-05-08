@@ -1,0 +1,333 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bacteria Cell Explorer - Grade 12 Biology</title>
+<style>
+body{font-family:Arial,sans-serif;background:#F3E5F5;color:#222;margin:0;}
+header{background:#311B92;color:#fff;padding:10px 18px;display:flex;align-items:center;gap:10px;}
+header h1{font-size:1rem;font-weight:700;}
+.badge{background:#7B1FA2;color:#311B92;padding:3px 10px;border-radius:12px;font-size:.78rem;font-weight:bold;}
+.main{display:grid;grid-template-columns:1fr 320px;gap:0;min-height:calc(100vh - 48px);}
+.canvas-col{padding:14px;background:#fff;border-right:2px solid #311B92;}
+.canvas-col h2{color:#311B92;font-size:.9rem;margin-bottom:8px;}
+.hint{font-size:.72rem;color:#888;text-align:center;margin-top:6px;}
+.info-col{display:flex;flex-direction:column;overflow-y:auto;}
+.info-card{padding:14px;background:linear-gradient(135deg,#311B92,#2a5298);color:#fff;min-height:100px;}
+.info-card h2{font-size:.95rem;color:#7B1FA2;margin-bottom:5px;}
+.info-card p{font-size:.8rem;line-height:1.55;}
+.tabs{display:flex;border-bottom:2px solid #311B92;}
+.tab-btn{flex:1;padding:8px 4px;text-align:center;font-size:.72rem;font-weight:700;cursor:pointer;background:#f0f4ff;color:#311B92;border:none;border-right:1px solid #ccc;}
+.tab-btn.active{background:#311B92;color:#fff;}
+.tab-body{flex:1;overflow-y:auto;padding:12px;}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+.tab-pane h3{color:#311B92;font-size:.85rem;margin-bottom:7px;border-bottom:2px solid #7B1FA2;padding-bottom:3px;}
+.tab-pane p,.tab-pane li{font-size:.79rem;line-height:1.6;margin-bottom:4px;}
+.tab-pane ul{padding-left:15px;}
+table{width:100%;border-collapse:collapse;font-size:.75rem;margin:6px 0;}
+th{background:#311B92;color:#fff;padding:5px;}
+td{border:1px solid #ddd;padding:5px;}
+tr:nth-child(even){background:#f9f9f9;}
+.et-box{background:#fffde7;border-left:4px solid #7B1FA2;padding:8px;border-radius:4px;margin:6px 0;font-size:.78rem;}
+#myCanvas{display:block;width:100%;height:480px;border-radius:8px;background:#080e1a;cursor:grab;touch-action:none;}
+#myCanvas:active{cursor:grabbing;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Bacteria Cell Explorer</h1>
+  <span class="badge">Grade 12 Biology</span>
+  <span class="badge">Unit 2</span>
+</header>
+<div class="main">
+  <div class="canvas-col">
+    <h2>3D Gram-Negative Bacterium (Rod-shaped)</h2>
+    <canvas id="myCanvas"></canvas>
+    <p class="hint">Drag to rotate | Scroll to zoom | Touch supported</p>
+  </div>
+  <div class="info-col">
+    <div class="info-card">
+      <h2>Prokaryotic Cell Structure</h2>
+      <p>Explore the 3D bacterium. The animated flagellum rotates in real time. Layers from outside: Capsule, Outer Membrane, Peptidoglycan (thin in Gram-negative), Plasma Membrane.</p>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('gs',this)">Gram Staining</button>
+      <button class="tab-btn" onclick="showTab('ab',this)">Antibiotic Targets</button>
+      <button class="tab-btn" onclick="showTab('amr',this)">Ethiopian AMR</button>
+    </div>
+    <div class="tab-body">
+      <div class="tab-pane active" id="tab-gs">
+        <h3>Gram Staining Procedure</h3>
+        <p>Developed by Hans Christian Gram (1884). Differentiates bacteria based on cell wall structure.</p>
+        <table>
+          <tr><th>Step</th><th>Agent</th><th>Purpose</th></tr>
+          <tr><td>1</td><td>Crystal violet</td><td>Primary stain - colours all cells purple</td></tr>
+          <tr><td>2</td><td>Iodine mordant</td><td>Forms crystal violet-iodine complex (locks dye)</td></tr>
+          <tr><td>3</td><td>Acetone/alcohol</td><td>Decolouriser - washes Gram- cells</td></tr>
+          <tr><td>4</td><td>Safranin</td><td>Counterstain - colours Gram- cells pink/red</td></tr>
+        </table>
+        <p><strong>Gram-positive:</strong> Thick peptidoglycan (20-80 nm) retains crystal violet-iodine complex even after acetone wash. Result: PURPLE.</p>
+        <p><strong>Gram-negative:</strong> Thin peptidoglycan (2-7 nm) + outer membrane. Acetone dissolves outer membrane lipids, releasing dye. Safranin counterstain = PINK.</p>
+        <p><strong>Clinical importance:</strong> Guides antibiotic choice. Gram+ infections respond to penicillins; Gram- require drugs that penetrate outer membrane.</p>
+      </div>
+      <div class="tab-pane" id="tab-ab">
+        <h3>Antibiotic Targets in Bacteria</h3>
+        <table>
+          <tr><th>Class</th><th>Target</th><th>Drug</th><th>Ethiopian Use</th></tr>
+          <tr><td>Beta-lactams</td><td>Peptidoglycan (transpeptidase)</td><td>Amoxicillin</td><td>First-line in Ethiopian clinics</td></tr>
+          <tr><td>Polymyxins</td><td>Outer membrane (LPS)</td><td>Colistin</td><td>Last-resort for MDR Gram-negatives</td></tr>
+          <tr><td>Aminoglycosides</td><td>30S ribosome</td><td>Gentamicin</td><td>Sepsis treatment in Ethiopian hospitals</td></tr>
+          <tr><td>Macrolides</td><td>50S ribosome</td><td>Azithromycin</td><td>Community pneumonia in Ethiopia</td></tr>
+          <tr><td>Fluoroquinolones</td><td>DNA gyrase</td><td>Ciprofloxacin</td><td>High resistance rates in Ethiopia</td></tr>
+        </table>
+        <p><strong>Mechanism of beta-lactam resistance:</strong> Bacteria produce beta-lactamase enzymes that cleave the beta-lactam ring. ESBLs (extended-spectrum beta-lactamases) are a major concern in Ethiopian hospitals.</p>
+      </div>
+      <div class="tab-pane" id="tab-amr">
+        <h3>Ethiopian Antimicrobial Resistance</h3>
+        <div class="et-box">
+          <strong>2021 BMC Infectious Diseases Study (Ethiopia)</strong><br>
+          Multi-centre surveillance across Ethiopian hospitals revealed alarming resistance patterns.
+        </div>
+        <ul>
+          <li><strong>E. coli:</strong> Greater than 80% resistance to ampicillin. High resistance to co-trimoxazole and tetracycline. Carbapenems still mostly effective but ESBL producers increasing.</li>
+          <li><strong>MRSA:</strong> Methicillin-resistant Staphylococcus aureus prevalence 20-35% in Ethiopian hospitals. Vancomycin remains active but access is limited.</li>
+          <li><strong>S. typhi:</strong> Fluoroquinolone resistance emerging. Multidrug-resistant (MDR) typhoid a growing concern in Ethiopian urban areas.</li>
+          <li><strong>Drivers of AMR in Ethiopia:</strong> Unregulated antibiotic sales (no prescription required in many pharmacies), incomplete treatment courses, poor infection control in healthcare settings, agricultural antibiotic use.</li>
+          <li><strong>Policy response:</strong> Ethiopia National Action Plan on AMR (2018-2022). WHO GLASS surveillance programme. One Health approach linking human, animal, and environmental sectors.</li>
+          <li><strong>Impact:</strong> AMR estimated to cost Ethiopia USD 1.5 billion annually in lost productivity and healthcare costs (WHO estimate).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+var canvas = document.getElementById('myCanvas');
+var ctx = canvas.getContext('2d');
+var W, H, CX, CY;
+var SCALE = 65;
+var FOV = 550;
+
+function resize() {
+  var rect = canvas.getBoundingClientRect();
+  W = rect.width; H = rect.height;
+  canvas.width = Math.round(W * devicePixelRatio);
+  canvas.height = Math.round(H * devicePixelRatio);
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  CX = W / 2; CY = H / 2;
+}
+window.addEventListener('resize', function(){ resize(); });
+resize();
+
+var rotX = 0.3, rotY = 0.5, zoom = 1.0;
+var dragging = false, lastX = 0, lastY = 0;
+
+canvas.addEventListener('mousedown', function(e){ dragging=true; lastX=e.clientX; lastY=e.clientY; });
+canvas.addEventListener('mousemove', function(e){ if(!dragging)return; rotY+=(e.clientX-lastX)*0.014; rotX+=(e.clientY-lastY)*0.014; lastX=e.clientX; lastY=e.clientY; });
+canvas.addEventListener('mouseup', function(){ dragging=false; });
+canvas.addEventListener('mouseleave', function(){ dragging=false; });
+canvas.addEventListener('wheel', function(e){ zoom=Math.max(0.5,Math.min(2.2,zoom-e.deltaY*0.001)); }, {passive:true});
+canvas.addEventListener('touchstart', function(e){ dragging=true; lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; }, {passive:true});
+canvas.addEventListener('touchmove', function(e){ e.preventDefault(); rotY+=(e.touches[0].clientX-lastX)*0.014; rotX+=(e.touches[0].clientY-lastY)*0.014; lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; }, {passive:false});
+canvas.addEventListener('touchend', function(){ dragging=false; });
+
+function rx(p, a) { return { x:p.x, y:p.y*Math.cos(a)-p.z*Math.sin(a), z:p.y*Math.sin(a)+p.z*Math.cos(a) }; }
+function ry(p, a) { return { x:p.x*Math.cos(a)+p.z*Math.sin(a), y:p.y, z:-p.x*Math.sin(a)+p.z*Math.cos(a) }; }
+
+function project(p) {
+  var q = rx(p, rotX);
+  q = ry(q, rotY);
+  var zOff = q.z * zoom * SCALE + FOV;
+  var f = FOV / Math.max(zOff, 1);
+  return { sx: CX + q.x * zoom * SCALE * f, sy: CY - q.y * zoom * SCALE * f, f: f, depth: q.z };
+}
+
+var scene = [];
+
+function sphere(x,y,z,r,color,opacity,label) {
+  opacity = opacity === undefined ? 1 : opacity;
+  label = label || '';
+  return { kind:'S', p:{x:x,y:y,z:z}, r:r, color:color, opacity:opacity, label:label };
+}
+function bond(x1,y1,z1,x2,y2,z2,r,color,opacity) {
+  opacity = opacity === undefined ? 1 : opacity;
+  return { kind:'B', a:{x:x1,y:y1,z:z1}, b:{x:x2,y:y2,z:z2}, r:r, color:color, opacity:opacity };
+}
+
+function parseHex(h) {
+  var v = h.replace('#','');
+  return [parseInt(v.slice(0,2),16), parseInt(v.slice(2,4),16), parseInt(v.slice(4,6),16)];
+}
+function lighten(hex, a) {
+  try { var c=parseHex(hex); return 'rgb('+Math.min(255,c[0]+a)+','+Math.min(255,c[1]+a)+','+Math.min(255,c[2]+a)+')'; } catch(e) { return hex; }
+}
+function darken(hex, a) {
+  try { var c=parseHex(hex); return 'rgb('+Math.max(0,c[0]-a)+','+Math.max(0,c[1]-a)+','+Math.max(0,c[2]-a)+')'; } catch(e) { return hex; }
+}
+
+function makeOval(cx,cy,cz,ax,ay,seg,color,r,op) {
+  op = op === undefined ? 1 : op;
+  for(var i=0;i<seg;i++){
+    var a1=i/seg*Math.PI*2, a2=(i+1)/seg*Math.PI*2;
+    var b = bond(cx+Math.cos(a1)*ax, cy+Math.sin(a1)*ay, cz, cx+Math.cos(a2)*ax, cy+Math.sin(a2)*ay, cz, r, color);
+    b.opacity = op;
+    scene.push(b);
+  }
+}
+
+function buildScene(t) {
+  scene = [];
+  var i, a1, a2;
+
+  // 1. Capsule
+  makeOval(0,0,0, 3.3,1.7, 28, '#fffacd', 0.04, 0.5);
+
+  // 2. Outer membrane
+  makeOval(0,0,0, 3.0,1.5, 28, '#e8c547', 0.065);
+
+  // 3. Peptidoglycan
+  makeOval(0,0,0, 2.7,1.35, 24, '#27ae60', 0.055);
+
+  // 4. Plasma membrane
+  makeOval(0,0,0, 2.45,1.2, 24, '#2196F3', 0.05);
+
+  // 5. Cytoplasm: 18 spheres
+  for (i=0;i<18;i++) {
+    scene.push(sphere(Math.sin(i*1.7)*1.8, Math.cos(i*1.1)*0.85, Math.sin(i*2.3)*0.5, 0.10, '#aaddff', 0.35));
+  }
+
+  // 6. Nucleoid DNA: 20 bonds in circle r=0.65, tilted 20deg
+  var tilt = 0.35; // ~20 degrees
+  for (i=0;i<20;i++) {
+    a1=i/20*Math.PI*2; a2=(i+1)/20*Math.PI*2;
+    var y1n = Math.sin(a1)*0.65*Math.cos(tilt);
+    var z1n = Math.sin(a1)*0.65*Math.sin(tilt);
+    var y2n = Math.sin(a2)*0.65*Math.cos(tilt);
+    var z2n = Math.sin(a2)*0.65*Math.sin(tilt);
+    scene.push(bond(Math.cos(a1)*0.65, y1n, z1n, Math.cos(a2)*0.65, y2n, z2n, 0.055, '#e74c3c'));
+  }
+
+  // 7. Plasmid: 14 bonds circle r=0.35 at (0.8, 0.3, 0.2)
+  for (i=0;i<14;i++) {
+    a1=i/14*Math.PI*2; a2=(i+1)/14*Math.PI*2;
+    scene.push(bond(0.8+Math.cos(a1)*0.35, 0.3+Math.sin(a1)*0.25, 0.2+Math.sin(a1)*0.2, 0.8+Math.cos(a2)*0.35, 0.3+Math.sin(a2)*0.25, 0.2+Math.sin(a2)*0.2, 0.04, '#9b59b6'));
+  }
+
+  // 8. Ribosomes: 20 spheres
+  for (i=0;i<20;i++) {
+    scene.push(sphere(Math.sin(i*1.4)*1.5, Math.cos(i*1.8)*0.7, Math.sin(i*0.9)*0.6, 0.065, '#f39c12'));
+  }
+
+  // 9. Flagellum: 18 bond segments, sinusoidal wave
+  for (i=0;i<17;i++) {
+    var fx1 = 2.45+i*0.3, fx2 = 2.45+(i+1)*0.3;
+    var fy1 = Math.sin(i*0.7+t)*0.3, fy2 = Math.sin((i+1)*0.7+t)*0.3;
+    var fz1 = Math.cos(i*0.7+t)*0.2, fz2 = Math.cos((i+1)*0.7+t)*0.2;
+    scene.push(bond(fx1,fy1,fz1, fx2,fy2,fz2, 0.04, '#27ae60'));
+  }
+
+  // 10. Pili: 8 bonds
+  var piliAngles = [0, 0.79, 1.57, 2.36, 3.14, 3.93, 4.71, 5.50];
+  for (i=0;i<8;i++) {
+    var pa = piliAngles[i];
+    var px = Math.cos(pa)*3.0;
+    var py = Math.sin(pa)*1.5;
+    var pex = Math.cos(pa)*3.4;
+    var pey = Math.sin(pa)*1.9;
+    scene.push(bond(px,py,0, pex,pey,0, 0.025, '#e67e22'));
+  }
+
+  // Labels
+  scene.push(sphere(-2.0, 1.6, 0, 0.3, 'transparent', 1, 'Capsule'));
+  scene.push(sphere(0, 1.6, 0, 0.3, 'transparent', 1, 'Outer Memb.'));
+  scene.push(sphere(0, -1.5, 0, 0.3, 'transparent', 1, 'Nucleoid'));
+  scene.push(sphere(3.0, 0, 0, 0.3, 'transparent', 1, 'Flagellum'));
+}
+
+function render() {
+  ctx.clearRect(0,0,W,H);
+  var bg = ctx.createRadialGradient(CX,CY*0.7,10,CX,CY,Math.max(W,H)*0.65);
+  bg.addColorStop(0,'#1c2a45');
+  bg.addColorStop(1,'#080e1a');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,W,H);
+
+  var projected = scene.map(function(obj) {
+    if (obj.kind === 'S') {
+      var prj = project(obj.p);
+      return Object.assign({}, obj, { depth: prj.depth, prj: prj });
+    } else {
+      var pa = project(obj.a), pb = project(obj.b);
+      return Object.assign({}, obj, { depth: (pa.depth+pb.depth)/2, pa: pa, pb: pb });
+    }
+  }).sort(function(a,b) { return a.depth - b.depth; });
+
+  projected.forEach(function(obj) {
+    ctx.globalAlpha = obj.opacity !== undefined ? obj.opacity : 1;
+    if (obj.kind === 'B') {
+      var avgF = (obj.pa.f + obj.pb.f) / 2;
+      var lw = Math.max(1, obj.r * SCALE * zoom * avgF * 1.8);
+      ctx.beginPath();
+      ctx.moveTo(obj.pa.sx, obj.pa.sy);
+      ctx.lineTo(obj.pb.sx, obj.pb.sy);
+      ctx.strokeStyle = obj.color;
+      ctx.lineWidth = lw;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    } else {
+      var prj = obj.prj;
+      var r = Math.max(3, obj.r * SCALE * zoom * prj.f);
+      if (obj.color === 'transparent') {
+        if (obj.label) {
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = '#ffd700';
+          ctx.font = 'bold ' + Math.max(11, Math.floor(r*0.6)) + 'px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(obj.label, prj.sx, prj.sy + 4);
+        }
+        return;
+      }
+      var grd = ctx.createRadialGradient(prj.sx - r*0.32, prj.sy - r*0.32, r*0.06, prj.sx, prj.sy, r);
+      grd.addColorStop(0, lighten(obj.color, 70));
+      grd.addColorStop(0.5, obj.color);
+      grd.addColorStop(1, darken(obj.color, 55));
+      ctx.beginPath();
+      ctx.arc(prj.sx, prj.sy, r, 0, Math.PI*2);
+      ctx.fillStyle = grd;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(prj.sx - r*0.28, prj.sy - r*0.28, r*0.22, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.fill();
+      if (obj.label) {
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold ' + Math.max(10, Math.floor(r*0.55)) + 'px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(obj.label, prj.sx, prj.sy - r - 4);
+      }
+    }
+    ctx.globalAlpha = 1;
+  });
+}
+
+var time = 0;
+function loop() {
+  if (!dragging) rotY += 0.005;
+  time += 0.02;
+  buildScene(time);
+  render();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>

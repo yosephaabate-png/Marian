@@ -1,0 +1,427 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Greenhouse Effect Simulator - Unit 6</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:#F3E5F5;color:#311B92;}
+h1{background:#311B92;color:#7B1FA2;padding:11px 18px;font-size:.95rem;}
+.sub{background:#2a5298;color:#e8d8a0;padding:4px 18px;font-size:.75rem;}
+.layout{display:flex;flex-direction:column;align-items:center;padding:14px;}
+.canvas-wrap{position:relative;width:100%;max-width:740px;}
+canvas{display:block;width:100%;height:420px;border-radius:10px;border:2px solid #311B92;background:#000;}
+.controls{width:100%;max-width:740px;background:#fff;border-radius:10px;border:2px solid #e0e6f0;padding:14px 18px;margin-top:12px;}
+.ctrl-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap;}
+.ctrl-lbl{font-size:.8rem;font-weight:bold;color:#311B92;min-width:140px;}
+input[type=range]{flex:1;min-width:120px;accent-color:#7B1FA2;}
+.val-box{font-size:.8rem;font-weight:bold;color:#7B1FA2;background:#311B92;padding:2px 9px;border-radius:6px;min-width:70px;text-align:center;}
+.info-panel{width:100%;max-width:740px;background:#fff;border-radius:10px;border:2px solid #e0e6f0;padding:14px 18px;margin-top:10px;}
+.info-panel h3{font-size:.85rem;color:#311B92;margin-bottom:6px;}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;}
+.stat{background:#F3E5F5;border-radius:7px;padding:8px 10px;font-size:.76rem;}
+.stat b{display:block;color:#311B92;font-size:.82rem;margin-bottom:2px;}
+.stat span{color:#7B1FA2;font-weight:bold;font-size:.9rem;}
+.scenario-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.sbtn{padding:6px 14px;border:2px solid #311B92;border-radius:7px;cursor:pointer;font-size:.76rem;font-weight:bold;background:#fff;color:#311B92;transition:background .15s;}
+.sbtn.active,.sbtn:hover{background:#311B92;color:#7B1FA2;}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.72rem;margin-top:8px;}
+.leg-item{display:flex;align-items:center;gap:5px;}
+.leg-dot{width:12px;height:12px;border-radius:50%;}
+</style>
+</head>
+<body>
+<h1>Greenhouse Effect Simulator - Marian School Ethiopia - Unit 6</h1>
+<div class="sub">The Natural vs Enhanced Greenhouse Effect | CO2 ppm | Global Temperature | Ethiopian Context</div>
+
+<div class="layout">
+  <div class="canvas-wrap">
+    <canvas id="ghCanvas"></canvas>
+  </div>
+
+  <div class="controls">
+    <div class="scenario-btns">
+      <button class="sbtn active" id="sbn0" onclick="setScenario(0)">Pre-industrial (280 ppm)</button>
+      <button class="sbtn" id="sbn1" onclick="setScenario(1)">Current 2024 (423 ppm)</button>
+      <button class="sbtn" id="sbn2" onclick="setScenario(2)">High emissions (700 ppm)</button>
+      <button class="sbtn" id="sbn3" onclick="setScenario(3)">Custom</button>
+    </div>
+    <div class="ctrl-row">
+      <span class="ctrl-lbl">CO2 concentration (ppm)</span>
+      <input type="range" id="co2Slider" min="180" max="800" value="280" oninput="onSlider()">
+      <span class="val-box" id="co2Val">280 ppm</span>
+    </div>
+    <div class="ctrl-row">
+      <span class="ctrl-lbl">Methane (CH4) level</span>
+      <input type="range" id="ch4Slider" min="0" max="3" value="0" step="1" oninput="onSlider()">
+      <span class="val-box" id="ch4Val">Pre-ind.</span>
+    </div>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#FFD700"></div>Solar radiation (shortwave)</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#FF6B35"></div>IR radiation (longwave)</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#88DDFF"></div>GHG molecules (CO2)</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#AAFFAA"></div>CH4 molecules</div>
+    </div>
+  </div>
+
+  <div class="info-panel">
+    <h3>Simulated Climate Data</h3>
+    <div class="info-grid">
+      <div class="stat"><b>CO2 Concentration</b><span id="statCO2">280 ppm</span></div>
+      <div class="stat"><b>Global Temp Anomaly</b><span id="statTemp">0.0 C</span></div>
+      <div class="stat"><b>IR Re-emitted (%)</b><span id="statIR">56%</span></div>
+      <div class="stat"><b>Ethiopia Temp Rise</b><span id="statEth">+0.0 C</span></div>
+      <div class="stat"><b>Lake Hawassa Effect</b><span id="statLake">Stable</span></div>
+      <div class="stat"><b>Teff Yield Impact</b><span id="statTeff">Baseline</span></div>
+    </div>
+    <div style="margin-top:10px;font-size:.77rem;color:#555;line-height:1.65;" id="contextText">
+      At 280 ppm CO2 (pre-industrial), the natural greenhouse effect keeps Earth's average temperature ~15C — 33C warmer than it would be without any atmosphere (-18C). Lake Hawassa is stable. Ethiopian teff yields follow historical norms.
+    </div>
+  </div>
+</div>
+
+<script>
+var canvas = document.getElementById('ghCanvas');
+var ctx = canvas.getContext('2d');
+var W, H, dpr;
+var currentCO2 = 280;
+var currentCH4 = 0;
+var rays = [];
+var ghgMols = [];
+var irRays = [];
+var tick = 0;
+
+var ch4Labels = ['Pre-industrial','Current (~1900 ppb)','High (3000 ppb)','Extreme (5000 ppb)'];
+var contexts = [
+  'At 280 ppm CO2 (pre-industrial), the natural greenhouse effect keeps Earth\'s average temperature ~15C -- 33C warmer than without any atmosphere (-18C). Lake Hawassa is stable. Ethiopian teff yields follow historical norms.',
+  'At 423 ppm CO2 (2024 level), global temperature has risen ~1.2C above pre-industrial. Ethiopia has warmed ~1.5C since 1960 -- faster than the global average. Lake Hawassa water levels are declining. Teff growing seasons are shifting northward and to higher altitudes.',
+  'At 700 ppm CO2 (high-emissions scenario, possible by 2100), global warming of +3 to +4C is projected. In Ethiopia, this means longer and more severe droughts in Somali and Afar regions, loss of wild Arabica coffee habitat in Kaffa zone (60-80% range reduction), and potential extinction of the Ethiopian wolf from highland habitats below 3400m.',
+  'Custom scenario. Adjust CO2 and CH4 sliders to explore how greenhouse gas concentrations affect temperature, IR re-emission, and Ethiopian ecological outcomes.'
+];
+
+function initCanvas(){
+  dpr = window.devicePixelRatio || 1;
+  var rect = canvas.getBoundingClientRect();
+  W = rect.width || 740;
+  H = rect.height || 420;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  buildScene();
+}
+
+function buildScene(){
+  // Solar rays (downward, yellow)
+  rays = [];
+  for(var i = 0; i < 6; i++){
+    rays.push({
+      x: W*0.12 + i*(W*0.13),
+      y: -20,
+      vy: 1.2 + Math.random()*0.4,
+      phase: Math.random()*60,
+      col: '#FFD700',
+      kind: 'solar'
+    });
+  }
+  // IR rays (upward, orange) — emitted from surface
+  irRays = [];
+  for(var j = 0; j < 10; j++){
+    irRays.push({
+      x: W*0.08 + j*(W*0.085),
+      y: H*0.72,
+      vy: -1.0 - Math.random()*0.5,
+      phase: Math.random()*80,
+      bounced: false,
+      bounceY: 0,
+      bounceDir: 1,
+      col: '#FF6B35',
+      kind: 'ir'
+    });
+  }
+  buildMolecules();
+}
+
+function buildMolecules(){
+  ghgMols = [];
+  var numCO2 = Math.round(4 + (currentCO2 - 180) / 60 * 3);
+  numCO2 = Math.min(numCO2, 14);
+  var numCH4 = currentCH4 * 2;
+  // CO2 molecules in atmosphere band
+  for(var i = 0; i < numCO2; i++){
+    ghgMols.push({
+      x: W*0.06 + Math.random()*W*0.88,
+      y: H*0.25 + Math.random()*H*0.28,
+      kind: 'CO2',
+      col: '#88DDFF',
+      r: 6,
+      vx: (Math.random()-0.5)*0.3,
+      vy: (Math.random()-0.5)*0.2,
+      pulse: Math.random()*60,
+      excited: false,
+      exciteTimer: 0
+    });
+  }
+  // CH4 molecules
+  for(var j = 0; j < numCH4; j++){
+    ghgMols.push({
+      x: W*0.06 + Math.random()*W*0.88,
+      y: H*0.22 + Math.random()*H*0.30,
+      kind: 'CH4',
+      col: '#AAFFAA',
+      r: 5,
+      vx: (Math.random()-0.5)*0.4,
+      vy: (Math.random()-0.5)*0.3,
+      pulse: Math.random()*60,
+      excited: false,
+      exciteTimer: 0
+    });
+  }
+}
+
+function tempAnomaly(){
+  var co2Base = 280;
+  var co2Factor = Math.log(currentCO2 / co2Base) / Math.log(2) * 3.0;
+  var ch4Factor = currentCH4 * 0.35;
+  return co2Factor + ch4Factor;
+}
+
+function irFraction(){
+  var base = 0.56;
+  var extra = (currentCO2 - 280) / 520 * 0.30;
+  var ch4extra = currentCH4 * 0.04;
+  return Math.min(0.92, base + extra + ch4extra);
+}
+
+function setScenario(n){
+  document.querySelectorAll('.sbtn').forEach(function(b,i){ b.className='sbtn'+(i===n?' active':''); });
+  if(n===0){ document.getElementById('co2Slider').value=280; document.getElementById('ch4Slider').value=0; }
+  else if(n===1){ document.getElementById('co2Slider').value=423; document.getElementById('ch4Slider').value=1; }
+  else if(n===2){ document.getElementById('co2Slider').value=700; document.getElementById('ch4Slider').value=2; }
+  onSlider(n!==3?n:null);
+}
+
+function onSlider(scenarioN){
+  currentCO2 = parseInt(document.getElementById('co2Slider').value);
+  currentCH4 = parseInt(document.getElementById('ch4Slider').value);
+  document.getElementById('co2Val').textContent = currentCO2 + ' ppm';
+  document.getElementById('ch4Val').textContent = ch4Labels[currentCH4];
+  // update stats
+  var dT = tempAnomaly();
+  var ir = irFraction();
+  var ethT = dT * 1.25;
+  document.getElementById('statCO2').textContent = currentCO2 + ' ppm';
+  document.getElementById('statTemp').textContent = (dT>=0?'+':'')+dT.toFixed(1)+' C';
+  document.getElementById('statIR').textContent = Math.round(ir*100)+'%';
+  document.getElementById('statEth').textContent = (ethT>=0?'+':'')+ethT.toFixed(1)+' C';
+  // Lake Hawassa
+  var lake = dT<0.5?'Stable':dT<1.5?'Declining levels':dT<3?'Severe stress':'Critical - ecosystem collapse risk';
+  document.getElementById('statLake').textContent = lake;
+  // Teff yield
+  var teff = dT<0.5?'Baseline':dT<1.5?'-5 to -10%':dT<3?'-20 to -30%':'-40% or worse';
+  document.getElementById('statTeff').textContent = teff;
+  // context text
+  var ctx2 = scenarioN!==null&&scenarioN!==undefined ? contexts[scenarioN] : contexts[3];
+  document.getElementById('contextText').textContent = ctx2;
+  buildMolecules();
+}
+
+function draw(){
+  ctx.clearRect(0, 0, W, H);
+  // Sky gradient
+  var skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+  var dT = tempAnomaly();
+  var blueStr = Math.max(0, 100 - dT*15);
+  skyGrad.addColorStop(0, 'rgb(10,20,60)');
+  skyGrad.addColorStop(0.45, 'rgb('+Math.round(blueStr*0.3)+','+Math.round(blueStr*0.7)+','+Math.round(blueStr)+')')
+  skyGrad.addColorStop(1, '#1a0a00');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Space label
+  ctx.fillStyle='rgba(255,255,255,0.5)';
+  ctx.font='bold 10px Arial';
+  ctx.fillText('SPACE', 8, 16);
+
+  // Atmosphere band
+  var atmAlpha = 0.08 + (currentCO2-180)/620*0.18;
+  ctx.fillStyle='rgba(100,180,255,'+atmAlpha.toFixed(2)+')';
+  ctx.fillRect(0, H*0.15, W, H*0.45);
+  ctx.strokeStyle='rgba(100,180,255,0.25)';
+  ctx.strokeRect(0, H*0.15, W, H*0.45);
+  ctx.fillStyle='rgba(150,200,255,0.4)';
+  ctx.font='10px Arial';
+  ctx.fillText('Atmosphere (CO2: '+currentCO2+' ppm)', 8, H*0.17);
+
+  // Ground
+  var grdGrad = ctx.createLinearGradient(0, H*0.72, 0, H);
+  var warmR = Math.min(255, 120 + dT*18);
+  grdGrad.addColorStop(0, 'rgb('+Math.round(warmR*0.7)+','+Math.round(warmR*0.45)+',20)');
+  grdGrad.addColorStop(0.4, 'rgb(80,50,20)');
+  grdGrad.addColorStop(1, 'rgb(30,15,5)');
+  ctx.fillStyle = grdGrad;
+  ctx.fillRect(0, H*0.72, W, H*0.28);
+
+  // Earth surface line
+  ctx.strokeStyle = '#7B1FA2';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, H*0.72);
+  ctx.lineTo(W, H*0.72);
+  ctx.stroke();
+  ctx.lineWidth = 1;
+
+  // Draw vegetation (teff fields simplified)
+  var vegCol = dT < 1 ? '#4a8c3f' : dT < 2.5 ? '#6a7c3a' : '#7a6028';
+  for(var v = 0; v < 8; v++){
+    var vx = W*0.06 + v*W*0.11;
+    ctx.fillStyle = vegCol;
+    ctx.fillRect(vx, H*0.70, 12, 8);
+    ctx.fillRect(vx+3, H*0.68, 6, 10);
+  }
+
+  // Lake (simplified blue rectangle)
+  ctx.fillStyle = 'rgba(30,100,200,'+(0.6-dT*0.06)+')';
+  ctx.beginPath();
+  ctx.ellipse(W*0.75, H*0.77, W*0.08, H*0.025, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(150,220,255,0.3)';
+  ctx.font = '8px Arial';
+  ctx.fillText('L.Hawassa', W*0.72, H*0.79);
+
+  // Solar rays
+  rays.forEach(function(r){
+    r.y += r.vy;
+    if(r.y > H*0.72) r.y = -20;
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    ctx.strokeStyle = r.col;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6,4]);
+    ctx.beginPath();
+    ctx.moveTo(r.x, r.y - 18);
+    ctx.lineTo(r.x, r.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // arrowhead
+    ctx.fillStyle = r.col;
+    ctx.beginPath();
+    ctx.moveTo(r.x, r.y+5);
+    ctx.lineTo(r.x-4, r.y-5);
+    ctx.lineTo(r.x+4, r.y-5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // IR rays (upward from surface)
+  var irF = irFraction();
+  irRays.forEach(function(r, idx){
+    // determine if this ray gets re-emitted (bounced) based on irF
+    var dosBounce = (idx / irRays.length) < irF;
+    r.y += r.vy;
+    if(!r.bounced && r.y < H*0.53 && dosBounce){
+      r.bounced = true;
+      r.bounceY = r.y;
+      r.vy = Math.abs(r.vy) * 0.9; // reverse toward surface
+    }
+    if(r.bounced && r.y > H*0.73){
+      r.bounced = false;
+      r.y = H*0.72;
+      r.vy = -(0.8 + Math.random()*0.4);
+    }
+    if(!r.bounced && r.y < -20) r.y = H*0.72;
+    ctx.save();
+    ctx.globalAlpha = 0.65;
+    ctx.strokeStyle = dosBounce ? '#FF6B35' : '#FF9955';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4,3]);
+    ctx.beginPath();
+    ctx.moveTo(r.x, r.y + (r.vy>0?10:-10));
+    ctx.lineTo(r.x, r.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // arrowhead direction
+    var dir = r.vy > 0 ? 1 : -1;
+    ctx.fillStyle = dosBounce ? '#FF6B35' : '#FF9955';
+    ctx.beginPath();
+    ctx.moveTo(r.x, r.y + dir*5);
+    ctx.lineTo(r.x-3, r.y - dir*3);
+    ctx.lineTo(r.x+3, r.y - dir*3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // GHG molecules
+  ghgMols.forEach(function(m){
+    m.x += m.vx; m.y += m.vy;
+    if(m.x < 10) m.vx = Math.abs(m.vx);
+    if(m.x > W-10) m.vx = -Math.abs(m.vx);
+    if(m.y < H*0.16) m.vy = Math.abs(m.vy);
+    if(m.y > H*0.60) m.vy = -Math.abs(m.vy);
+    m.pulse++;
+    var pulse = Math.sin(m.pulse*0.08)*1.5;
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.beginPath();
+    ctx.arc(m.x, m.y, m.r + pulse, 0, Math.PI*2);
+    ctx.fillStyle = m.col;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // label
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 7px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(m.kind, m.x, m.y+2.5);
+    ctx.restore();
+  });
+
+  // Temperature gauge (right side)
+  var gaugeX = W - 32;
+  var gaugeH = H * 0.45;
+  var gaugeY = H * 0.18;
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.fillRect(gaugeX-4, gaugeY, 22, gaugeH);
+  var maxDT = 4.5;
+  var fillFrac = Math.min(1, Math.max(0, dT/maxDT));
+  var fillCol = dT < 1.5 ? '#4CAF50' : dT < 3 ? '#FF9800' : '#e74c3c';
+  ctx.fillStyle = fillCol;
+  ctx.fillRect(gaugeX-4, gaugeY + gaugeH*(1-fillFrac), 22, gaugeH*fillFrac);
+  ctx.strokeStyle = '#7B1FA2';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(gaugeX-4, gaugeY, 22, gaugeH);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 9px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('Temp', gaugeX+7, gaugeY-5);
+  ctx.fillText((dT>=0?'+':'')+dT.toFixed(1)+'C', gaugeX+7, gaugeY+gaugeH+12);
+  ctx.textAlign = 'left';
+
+  // Title labels
+  ctx.fillStyle = 'rgba(255,220,100,0.8)';
+  ctx.font = 'bold 10px Arial';
+  ctx.fillText('Solar (shortwave) ->', 6, H*0.42);
+  ctx.fillStyle = 'rgba(255,107,53,0.8)';
+  ctx.fillText('IR re-emitted ('+Math.round(irF*100)+'%)', 6, H*0.56);
+
+  tick++;
+  requestAnimationFrame(draw);
+}
+
+requestAnimationFrame(function(){
+  requestAnimationFrame(function(){
+    initCanvas();
+    onSlider(0);
+    draw();
+  });
+});
+
+window.addEventListener('resize', function(){
+  initCanvas();
+});
+</script>
+</body>
+</html>

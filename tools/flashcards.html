@@ -1,0 +1,305 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flashcards - Unit 5 Nervous System</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:#F3E5F5;color:#311B92;}
+h1{background:#311B92;color:#7B1FA2;padding:11px 18px;font-size:.95rem;}
+.sub{background:#2a5298;color:#e8d8a0;padding:4px 18px;font-size:.75rem;}
+.controls{display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px;background:#fff;border-bottom:2px solid #e0e6f0;align-items:center;}
+.btn{padding:6px 14px;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:.8rem;}
+.bn{background:#311B92;color:#7B1FA2;} .bn:hover{background:#25508a;}
+.bg{background:#7B1FA2;color:#311B92;} .bg:hover{background:#b8933b;}
+.br{background:#e74c3c;color:#fff;}
+.bgr{background:#27ae60;color:#fff;}
+select{padding:5px 10px;border:2px solid #311B92;border-radius:6px;font-size:.8rem;color:#311B92;}
+.progress{font-size:.8rem;color:#666;margin-left:auto;}
+.prog-bar-wrap{width:120px;height:8px;background:#e0e6f0;border-radius:4px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px;}
+.prog-bar{height:100%;background:#27ae60;border-radius:4px;transition:width .3s;}
+
+/* Card area */
+.card-area{display:flex;justify-content:center;align-items:center;padding:20px 14px 10px;min-height:320px;}
+.card-wrap{width:100%;max-width:680px;perspective:1200px;}
+.card{width:100%;height:260px;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);cursor:pointer;}
+.card.flipped{transform:rotateY(180deg);}
+.card-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;padding:28px 28px 20px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;}
+.card-front{background:#311B92;box-shadow:0 6px 28px rgba(27,58,107,.35);}
+.card-back{background:#fff;border:3px solid #311B92;transform:rotateY(180deg);box-shadow:0 6px 28px rgba(27,58,107,.2);}
+.card-category{font-size:.68rem;font-weight:bold;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;padding:3px 10px;border-radius:10px;}
+.card-front .card-category{background:rgba(201,168,76,.2);color:#7B1FA2;}
+.card-back .card-category{color:#fff;margin-bottom:8px;}
+.card-term{font-size:1.35rem;font-weight:bold;color:#7B1FA2;line-height:1.3;}
+.card-hint{font-size:.75rem;color:rgba(255,255,255,.45);margin-top:10px;}
+.card-def{font-size:.85rem;color:#311B92;line-height:1.65;margin-bottom:8px;}
+.card-eth{font-size:.72rem;color:#27ae60;background:#e8f4e8;border-radius:6px;padding:6px 10px;line-height:1.5;width:100%;}
+.card-eth b{color:#311B92;}
+.flip-hint{font-size:.7rem;color:rgba(255,255,255,.4);margin-top:14px;}
+
+/* Nav */
+.nav-row{display:flex;justify-content:center;align-items:center;gap:14px;padding:8px 14px;}
+.nav-btn{width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;font-size:1.1rem;font-weight:bold;background:#311B92;color:#7B1FA2;display:flex;align-items:center;justify-content:center;}
+.nav-btn:hover{background:#25508a;}
+.card-counter{font-size:.85rem;color:#666;min-width:80px;text-align:center;}
+
+/* Rate buttons */
+.rate-row{display:flex;justify-content:center;gap:10px;padding:4px 14px 10px;}
+.rate-btn{padding:7px 20px;border:none;border-radius:20px;cursor:pointer;font-weight:bold;font-size:.78rem;}
+
+/* Category filter dots */
+.cat-dots{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 8px;}
+.cat-dot{padding:4px 11px;border-radius:12px;border:2px solid;cursor:pointer;font-size:.7rem;font-weight:bold;opacity:.55;transition:opacity .2s;}
+.cat-dot.active{opacity:1;}
+
+/* Stats */
+.stats-bar{display:flex;gap:12px;padding:6px 14px;background:#fff;border-top:1px solid #eee;font-size:.75rem;flex-wrap:wrap;}
+.stat{display:flex;align-items:center;gap:4px;}
+.stat-dot{width:8px;height:8px;border-radius:50%;}
+</style>
+</head>
+<body>
+<h1>Flashcards - Marian School Ethiopia - Unit 5: Human Body Systems</h1>
+<div class="sub">55 terms | Neuron | Action Potential | Synapse | Endocrine | Kidney & ADH | Click card to flip</div>
+
+<div class="controls">
+  <button class="btn bn" onclick="shuffleCards()">Shuffle</button>
+  <button class="btn bn" onclick="resetAll()">Reset All</button>
+  <select id="catFilter" onchange="filterCat()">
+    <option value="all">All categories</option>
+    <option value="Neuron">Neuron Structure</option>
+    <option value="Action Potential">Action Potential</option>
+    <option value="Synapse">Synaptic Transmission</option>
+    <option value="Endocrine">Endocrine System</option>
+    <option value="Kidney">Kidney & ADH</option>
+  </select>
+  <span class="progress" id="progText">0 / 55 learned</span>
+  <div class="prog-bar-wrap"><div class="prog-bar" id="progBar" style="width:0%"></div></div>
+</div>
+
+<div class="cat-dots" id="catDots"></div>
+
+<div class="card-area">
+  <div class="card-wrap">
+    <div class="card" id="card" onclick="flipCard()">
+      <div class="card-face card-front" id="cardFront">
+        <span class="card-category" id="fCat"></span>
+        <div class="card-term" id="fTerm"></div>
+        <div class="flip-hint">Click to reveal definition</div>
+      </div>
+      <div class="card-face card-back" id="cardBack">
+        <span class="card-category" id="bCat"></span>
+        <div class="card-def" id="bDef"></div>
+        <div class="card-eth" id="bEth"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-row">
+  <button class="nav-btn" onclick="prevCard()">&#9664;</button>
+  <span class="card-counter" id="counter">1 / 55</span>
+  <button class="nav-btn" onclick="nextCard()">&#9654;</button>
+</div>
+
+<div class="rate-row" id="rateRow">
+  <button class="rate-btn" style="background:#e74c3c;color:#fff;" onclick="rateCard(0)">Still learning</button>
+  <button class="rate-btn" style="background:#f39c12;color:#fff;" onclick="rateCard(1)">Almost</button>
+  <button class="rate-btn" style="background:#27ae60;color:#fff;" onclick="rateCard(2)">Got it!</button>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-dot" style="background:#e74c3c"></div><span id="stat0">0 still learning</span></div>
+  <div class="stat"><div class="stat-dot" style="background:#f39c12"></div><span id="stat1">0 almost</span></div>
+  <div class="stat"><div class="stat-dot" style="background:#27ae60"></div><span id="stat2">0 got it</span></div>
+  <div class="stat"><div class="stat-dot" style="background:#ccc"></div><span id="statU">55 unseen</span></div>
+</div>
+
+<script>
+var allCards = [
+  // ---- NEURON STRUCTURE (11) ----
+  {cat:'Neuron',term:'Neuron',def:'The fundamental functional unit of the nervous system. A specialised cell capable of receiving, integrating, and transmitting electrochemical signals. Consists of dendrites (receive), soma (integrate), axon (transmit), and terminals (release neurotransmitters).',eth:'Ethiopian marathon runners have motor neurons with high mitochondrial density in the soma - sustaining the Na+/K+ ATPase pump activity needed for millions of action potentials during a race.'},
+  {cat:'Neuron',term:'Dendrite',def:'Branching extensions of the cell body that receive incoming signals from other neurons or sensory receptors. Covered with receptor proteins and ion channels. Produce localised graded potentials that travel toward the soma. Large surface area maximises synaptic input.',eth:'Repeated motor training in Ethiopian runners strengthens dendritic connections in the motor cortex - the physical basis of muscle memory and improved coordination.'},
+  {cat:'Neuron',term:'Soma (cell body)',def:'The metabolic centre of the neuron. Contains the nucleus (DNA), ribosomes, ER, and mitochondria. Integrates all incoming signals from dendrites. If net depolarisation at the axon hillock reaches threshold (-55 mV), an action potential fires.',eth:'Neurons in Ethiopian highland populations show higher mitochondrial density in the soma - an adaptation to low oxygen availability that maintains neuronal function at altitude.'},
+  {cat:'Neuron',term:'Axon hillock',def:'The cone-shaped region where the axon emerges from the soma. Has the highest density of voltage-gated Na+ channels in the neuron (~100x more than the soma). This is where action potentials are initiated when threshold is reached. The site of the all-or-nothing decision.',eth:'Fast reflex responses in Ethiopian football players depend on rapid action potential initiation at the axon hillock of motor neurons in the lumbar spinal cord.'},
+  {cat:'Neuron',term:'Myelin sheath',def:'A multilayered lipid-rich insulating sheath formed by Schwann cells (PNS) or oligodendrocytes (CNS). Increases axon resistance, reduces capacitance, and forces action potentials to jump between nodes of Ranvier (saltatory conduction). Increases conduction velocity from 0.5-2 m/s to 70-120 m/s.',eth:'Multiple sclerosis destroys myelin. MS rates are lower in equatorial regions like Ethiopia - vitamin D from sun exposure may be protective. Traditional Ethiopian diet includes omega-3 rich fish (Lake Tana tilapia) supporting myelin integrity.'},
+  {cat:'Neuron',term:'Node of Ranvier',def:'Small gaps (1-2 micrometres) in the myelin sheath where the axon membrane is exposed. Densely packed with voltage-gated Na+ and K+ channels. The action potential regenerates at each node during saltatory conduction - jumping from node to node at high speed without signal decay.',eth:'The patellar reflex used in Ethiopian hospital neurological exams tests saltatory conduction through the femoral nerve. A healthy reflex arc takes ~25 ms total.'},
+  {cat:'Neuron',term:'Axon terminal (synaptic knob)',def:'The swollen end of the axon at a synapse. Contains synaptic vesicles (filled with neurotransmitter), mitochondria (ATP for NT synthesis), and voltage-gated Ca2+ channels. When an AP arrives, Ca2+ entry triggers vesicle fusion and neurotransmitter release by exocytosis.',eth:'Khat (Catha edulis), widely used in Ethiopia, contains cathinone which acts at axon terminals to increase norepinephrine release - producing stimulant effects similar to amphetamine.'},
+  {cat:'Neuron',term:'Resting membrane potential',def:'The electrical potential difference across the plasma membrane of a non-stimulated neuron: typically -70 mV (inside negative). Maintained by: (1) Na+/K+ ATPase pump (3 Na+ out, 2 K+ in per ATP), (2) differential permeability (K+ leak channels), (3) negatively charged intracellular proteins.',eth:'Reducing the Na+/K+ pump activity is an oxygen-conserving adaptation in Ethiopian highland populations - maintaining -70 mV at lower ATP cost during altitude hypoxia.'},
+  {cat:'Neuron',term:'Saltatory conduction',def:'The mechanism by which action potentials propagate along myelinated axons by jumping from one node of Ranvier to the next. Much faster (70-120 m/s) than continuous conduction in unmyelinated fibres (0.5-2 m/s). Also more metabolically efficient - ion pumps only restore ions at nodes.',eth:'The speed advantage of saltatory conduction is critical for Ethiopian athletes - motor commands from the brain reach leg muscles in <15 ms, enabling rapid stride adjustments during competitive running.'},
+  {cat:'Neuron',term:'Afferent vs efferent',def:'Afferent neurons carry signals TOWARD the CNS (sensory neurons). Efferent neurons carry signals AWAY from the CNS (motor neurons). Mnemonic: SAME = Sensory Afferent, Motor Efferent. Afferent cell bodies are in the dorsal root ganglion; efferent cell bodies are in the ventral horn of the spinal cord.',eth:'The patellar reflex (L3-L4) tested routinely in Ethiopian clinics uses afferent fibres from the quadriceps muscle spindle and efferent fibres in the femoral nerve to the quadriceps.'},
+  {cat:'Neuron',term:'Refractory period',def:'Period after an action potential during which another AP cannot fire (absolute refractory period - Na+ channels inactivated) or requires a stronger stimulus (relative refractory period - hyperpolarisation). Ensures APs travel in ONE direction only and limits maximum firing frequency to ~500-1000 Hz.',eth:'The refractory period determines the maximum frequency at which motor neurons can fire. Ethiopian marathon runners exhibit efficient neuromuscular firing patterns that approach the optimum recruitment frequency for sustained endurance.'},
+
+  // ---- ACTION POTENTIAL (10) ----
+  {cat:'Action Potential',term:'Action potential',def:'A brief, all-or-nothing reversal of membrane potential (-70 mV to approximately +40 mV and back) that propagates along the axon as a nerve impulse. Generated when membrane depolarisation reaches threshold (-55 mV). Duration: ~1-2 ms in most neurons.',eth:'The action potential is the fundamental electrical signal of the nervous system. Every step taken by Ethiopian marathon runners requires precisely coordinated action potentials in hundreds of motor neurons firing in sequence.'},
+  {cat:'Action Potential',term:'Threshold (-55 mV)',def:'The membrane potential at which voltage-gated Na+ channels open sufficiently to create a regenerative, self-sustaining depolarisation. If stimulation does not reach -55 mV, no action potential fires (all-or-nothing law). The axon hillock has the lowest threshold due to high Na+ channel density.',eth:'The all-or-nothing nature of the threshold means that the knee-jerk reflex in an Ethiopian clinic either fires fully or not at all - a tap below threshold produces no response; one above threshold produces the full reflex.'},
+  {cat:'Action Potential',term:'Depolarisation',def:'The upstroke of the action potential: membrane potential rises from -55 mV to +40 mV as voltage-gated Na+ channels open and Na+ floods into the cell. A positive feedback process - depolarisation opens more Na+ channels which causes more depolarisation. Takes ~0.5-1 ms.',eth:'Tetrodotoxin (TTX) from puffer fish completely blocks voltage-gated Na+ channels, preventing depolarisation. Ethiopian fishermen at Lake Tana avoid puffer fish - even small doses cause respiratory muscle paralysis.'},
+  {cat:'Action Potential',term:'Repolarisation',def:'The downstroke of the action potential: membrane potential falls from +40 mV back to -70 mV as voltage-gated K+ channels open (K+ flows out) and Na+ channels inactivate. K+ channels open more slowly than Na+ channels, so repolarisation takes slightly longer (~1-2 ms).',eth:'Local anaesthetics used in Ethiopian dental clinics (lidocaine) stabilise Na+ channels in their inactivated state, preventing repolarisation from resetting them - blocking all action potentials and thus preventing pain signals.'},
+  {cat:'Action Potential',term:'Hyperpolarisation',def:'Brief period after repolarisation where the membrane potential drops below resting (-70 mV to ~-80 mV) because voltage-gated K+ channels close slowly. During this relative refractory period, a new AP can fire but requires a stronger-than-normal stimulus. Limits maximum firing frequency.',eth:'During Ethiopian Great Run (40,000 runners), motor neurons fire at high frequency for extended periods. The depth and duration of hyperpolarisation limits how quickly a new AP can fire - a key constraint on maximum muscle contraction speed.'},
+  {cat:'Action Potential',term:'Voltage-gated Na+ channel',def:'Ion channel that opens when membrane potential reaches ~-55 mV. Has two gates: activation gate (opens at depolarisation) and inactivation gate (closes at +40 mV, even with activation gate open). The inactivated state is responsible for the absolute refractory period. Blocked by TTX and local anaesthetics.',eth:'Mutations in voltage-gated Na+ channels cause conditions like congenital insensitivity to pain - inability to feel pain. Cases have been reported in Ethiopian populations. Affected individuals have no protective withdrawal reflexes and suffer repeated injuries.'},
+  {cat:'Action Potential',term:'Voltage-gated K+ channel',def:'Ion channel that opens in response to membrane depolarisation but more slowly than Na+ channels. Allows K+ to flow out of the cell during repolarisation. Does not have an inactivation gate - closes when membrane returns to resting potential. Blocked by tetraethylammonium (TEA).',eth:'K+ channel function is temperature-sensitive. In extremely hot conditions (Ethiopian Danakil Depression, up to 50 C), membrane fluidity changes can alter K+ channel gating kinetics - one reason that neurological symptoms occur in severe heat stroke.'},
+  {cat:'Action Potential',term:'Na+/K+ ATPase pump',def:'Active transport protein that pumps 3 Na+ OUT and 2 K+ IN per ATP molecule hydrolysed. Maintains the concentration gradients (Na+ high outside, K+ high inside) essential for resting potential and action potential generation. Requires ~30% of total neuronal ATP consumption.',eth:'During intense exercise, Ethiopian marathon runners generate large amounts of lactate and H+ (lactic acid), which can temporarily inhibit Na+/K+ ATPase. This contributes to muscle fatigue - a key physiological limit in endurance events.'},
+  {cat:'Action Potential',term:'All-or-nothing law',def:'An action potential either fires with full amplitude (+40 mV) or does not fire at all. There is no partial action potential. Once threshold (-55 mV) is reached, the response is always the same size and duration, regardless of stimulus strength. Stimulus strength is coded by frequency of APs, not amplitude.',eth:'The patellar reflex in an Ethiopian neurological exam demonstrates all-or-nothing: a sub-threshold tap produces no reflex; a suprathreshold tap always produces the same full-amplitude muscle contraction. The doctor can control WHICH reflex fires, but not the size of the AP.'},
+  {cat:'Action Potential',term:'Conduction velocity',def:'The speed at which an action potential travels along an axon. Determined by: (1) myelination (myelinated = 70-120 m/s; unmyelinated = 0.5-2 m/s) and (2) axon diameter (larger diameter = faster). A-alpha motor fibres are the fastest; C fibres (pain, unmyelinated, small) are the slowest.',eth:'Nerve conduction studies (NCS) at Black Lion Hospital measure conduction velocity. Reduced velocity indicates demyelination (e.g. Guillain-Barre syndrome). Normal median nerve conduction velocity: ~50-65 m/s in healthy Ethiopian adults.'},
+
+  // ---- SYNAPSE (11) ----
+  {cat:'Synapse',term:'Synapse',def:'A junction between two neurons or between a neuron and an effector where chemical or electrical communication occurs. Chemical synapses (most common) use neurotransmitters. The ~20 nm gap is the synaptic cleft. Consists of: presynaptic terminal, synaptic cleft, postsynaptic membrane.',eth:'Every voluntary movement made by an Ethiopian athlete involves millions of synaptic transmissions per second. The speed and reliability of synaptic transmission determines movement precision and reaction time.'},
+  {cat:'Synapse',term:'Acetylcholine (ACh)',def:'The neurotransmitter at cholinergic synapses. Released at neuromuscular junctions (all skeletal muscle), parasympathetic endings, and some CNS synapses. Synthesised from choline + acetyl-CoA by choline acetyltransferase (ChAT). Broken down by acetylcholinesterase (AChE) in the synaptic cleft.',eth:'Khat consumption in Ethiopia increases heart rate via adrenergic synapses. But at neuromuscular junctions, ACh is the transmitter - khat does not affect these directly. The distinction between adrenergic and cholinergic synapses is clinically important in Ethiopian emergency medicine.'},
+  {cat:'Synapse',term:'Acetylcholinesterase (AChE)',def:'Enzyme located in the synaptic cleft and on the postsynaptic membrane that rapidly hydrolyses ACh into choline + acetate. Terminates the synaptic signal. One of the fastest enzymes known - can hydrolyse 25,000 ACh molecules per second. Inhibited by organophosphates and nerve agents.',eth:'Organophosphate pesticide poisoning (AChE inhibition) occurs among Ethiopian farm workers. Continuous ACh stimulation causes copious secretions, muscle paralysis, and respiratory failure. Treatment: atropine (blocks muscarinic receptors) + pralidoxime (reactivates AChE). Ethiopian hospitals stock both.'},
+  {cat:'Synapse',term:'Synaptic vesicle',def:'Membrane-bound organelle in the presynaptic terminal containing neurotransmitter molecules. Each vesicle holds ~5,000-10,000 ACh molecules (one quantum). Vesicle fusion with the presynaptic membrane (exocytosis) is triggered by Ca2+ entry through voltage-gated Ca2+ channels when the AP arrives.',eth:'Botulinum toxin (from Clostridium botulinum) cleaves SNARE proteins required for vesicle fusion. Botulism from improperly fermented injera has been reported in Ethiopia - causing flaccid paralysis and respiratory failure requiring intensive care.'},
+  {cat:'Synapse',term:'Synaptic cleft',def:'The ~20 nm gap between the presynaptic membrane and postsynaptic membrane. Neurotransmitters diffuse across this gap in ~0.05 ms. The extreme narrowness ensures rapid, focused transmission and prevents neurotransmitter from escaping into general circulation before binding receptors.',eth:'The synaptic delay (0.5-1 ms for chemical synapses) means that complex reflex arcs involving multiple synapses are slower than monosynaptic reflexes. This is why the patellar reflex (monosynaptic) is faster than the withdrawal reflex (polysynaptic).'},
+  {cat:'Synapse',term:'Nicotinic ACh receptor',def:'Ligand-gated ion channel on the postsynaptic membrane. Binding of 2 ACh molecules opens the channel, allowing Na+ and K+ to flow (net Na+ inflow). Produces a fast excitatory postsynaptic potential (EPSP). Found at neuromuscular junctions and autonomic ganglia. Blocked by curare.',eth:'Curare (tubocurarine), historically used on blowpipe darts in South America, blocks nicotinic receptors at NMJs, causing flaccid paralysis. Modern surgical anaesthesia uses synthetic curare derivatives (vecuronium) at Ethiopian hospitals during general anaesthesia.'},
+  {cat:'Synapse',term:'EPSP vs IPSP',def:'EPSP (excitatory postsynaptic potential): depolarisation of postsynaptic membrane, bringing it closer to threshold. Caused by Na+ influx or K+ channel closure. IPSP (inhibitory postsynaptic potential): hyperpolarisation, moving away from threshold. Caused by Cl- influx (GABA-A) or K+ efflux. Soma sums all EPSPs and IPSPs.',eth:'GABA (gamma-aminobutyric acid) produces IPSPs - the main inhibitory neurotransmitter. Alcohol enhances GABA-A receptors (more inhibition). Alcohol use disorders are rising in urban Ethiopia, associated with increased GABAergic tone and CNS depression.'},
+  {cat:'Synapse',term:'Exocytosis',def:'The process by which synaptic vesicles fuse with the presynaptic membrane and release their neurotransmitter contents into the synaptic cleft. Triggered by Ca2+ binding to synaptotagmin proteins on the vesicle surface. SNARE proteins mediate the actual membrane fusion event.',eth:'Magnesium ions (Mg2+) compete with Ca2+ at presynaptic terminals. Magnesium deficiency - documented in some Ethiopian highland communities with low dietary Mg2+ intake - can affect synaptic transmission and cause muscle cramps and neurological symptoms.'},
+  {cat:'Synapse',term:'Choline reuptake',def:'After AChE breaks down ACh, choline is actively transported back into the presynaptic terminal by high-affinity choline transporters (ChT1). Inside, choline acetyltransferase (ChAT) resynthesises ACh from choline + acetyl-CoA. This recycling ensures continuous transmission during sustained neural activity.',eth:'Cholinesterase inhibitors (donepezil, rivastigmine) used to treat Alzheimer\'s disease slow ACh breakdown, increasing available ACh at synapses. Alzheimer\'s prevalence is rising in ageing Ethiopian populations, particularly in Addis Ababa.'},
+  {cat:'Synapse',term:'Summation',def:'The process by which multiple EPSPs are combined at the axon hillock to determine whether an action potential fires. Temporal summation: rapid successive stimuli from the same synapse accumulate. Spatial summation: simultaneous EPSPs from multiple different synapses sum together. Both can bring membrane to threshold.',eth:'Ethiopian traditional drummers (playing kebero, negarit) develop precise temporal patterns in motor neuron summation through years of practice - the rhythmic precision reflects highly trained spatial and temporal summation patterns in motor neurons.'},
+  {cat:'Synapse',term:'Neuromuscular junction (NMJ)',def:'A specialised synapse between a motor neuron and a skeletal muscle fibre. The motor end plate is the highly folded postsynaptic membrane rich in nicotinic ACh receptors. One action potential at the NMJ reliably produces a muscle action potential (high safety factor). The motor neuron + all muscle fibres it innervates = a motor unit.',eth:'Small motor units (few fibres) provide fine motor control (e.g. injera rolling with fingertips). Large motor units (many fibres) provide power (e.g. running quadriceps). Ethiopian weavers using traditional handlooms require highly differentiated small motor units in the hands.'},
+
+  // ---- ENDOCRINE SYSTEM (12) ----
+  {cat:'Endocrine',term:'Hormone',def:'A chemical messenger secreted by an endocrine gland directly into the blood. Transported to target cells expressing specific receptor proteins. Can produce effects far from the secretory gland. Acts more slowly than nervous signals (seconds to days) but has longer-lasting effects.',eth:'Cortisol (stress hormone from adrenal cortex) rises during prolonged fasting - a physiological response documented in Ethiopian famine survivors. Chronic cortisol elevation suppresses immune function and reproductive hormones, with long-term health consequences.'},
+  {cat:'Endocrine',term:'Hypothalamus',def:'The master integrator of the endocrine system. Located at the brain base, receives input from cerebral cortex and blood. Controls anterior pituitary via releasing hormones (CRH, TRH, GnRH, GHRH) in portal blood. Directly produces ADH and oxytocin (stored in posterior pituitary). Also controls body temperature, hunger, thirst, and circadian rhythms.',eth:'Chronic stress activates the hypothalamic-pituitary-adrenal (HPA) axis. Studies in Ethiopian refugees show altered hypothalamic CRH secretion patterns - long-term stress adaptation that changes the HPA axis set point for months to years.'},
+  {cat:'Endocrine',term:'Pituitary gland',def:'The "master gland" - a pea-sized structure connected to the hypothalamus by the pituitary stalk. Anterior lobe (adenohypophysis): produces GH, TSH, ACTH, FSH, LH, prolactin. Posterior lobe (neurohypophysis): stores and releases ADH and oxytocin (made in hypothalamus). Controls most other endocrine glands.',eth:'Pituitary adenomas (benign tumours) cause hormone excess. Prolactinoma (excess prolactin) is the most common, causing infertility. Treated with dopamine agonists (bromocriptine) at Black Lion Hospital. Acromegaly (excess GH) causes bone overgrowth and raises blood glucose.'},
+  {cat:'Endocrine',term:'Negative feedback',def:'The primary mechanism controlling hormone secretion. Rising hormone levels feed back to inhibit their own further secretion at the hypothalamus and/or pituitary. Example: cortisol inhibits CRH (hypothalamus) and ACTH (pituitary). Maintains hormones within a narrow physiological range.',eth:'The negative feedback system is disrupted in Cushing\'s syndrome (excess cortisol). Rising cases in urban Ethiopia reflect improved diagnosis capacity. Untreated Cushing\'s causes central obesity, hypertension, and type 2 diabetes - all rising conditions in Ethiopian cities.'},
+  {cat:'Endocrine',term:'Insulin',def:'Peptide hormone secreted by beta cells of the islets of Langerhans in the pancreas. Released when blood glucose rises above 5 mmol/L. Actions: stimulates glucose uptake into cells (via GLUT4 translocation), promotes glycogenesis (glucose to glycogen in liver/muscle), inhibits gluconeogenesis and glycogenolysis. Lowers blood glucose.',eth:'Type 2 diabetes (insulin resistance) prevalence is rising in urban Ethiopia. The transition from traditional teff injera (GI ~55) to refined wheat products (GI ~75) is a major risk factor. Teff\'s resistant starch and fibre reduce the postprandial insulin spike.'},
+  {cat:'Endocrine',term:'Glucagon',def:'Peptide hormone secreted by alpha cells of the islets of Langerhans. Released when blood glucose falls below 4 mmol/L. Actions: promotes glycogenolysis (glycogen to glucose in liver), promotes gluconeogenesis (amino acids/glycerol to glucose), inhibits glycogenesis. Raises blood glucose.',eth:'Glucagon emergency injections are used to treat severe hypoglycaemia (blood glucose <2.5 mmol/L) in diabetic patients who cannot swallow. Ethiopian hospital emergency departments carry glucagon kits for diabetic emergencies, which are increasing as insulin use rises.'},
+  {cat:'Endocrine',term:'Thyroid hormones (T3/T4)',def:'Iodine-containing hormones (thyroxine T4, triiodothyronine T3) produced by thyroid follicles. T4 is converted to the active T3 in peripheral tissues. Actions: increase basal metabolic rate, stimulate protein synthesis and growth, essential for brain development in foetuses (iodine deficiency = cretinism). Controlled by TSH from pituitary.',eth:'Iodine deficiency was historically common in Ethiopian highlands. National iodised salt programmes since the 1990s dramatically reduced goitre prevalence. However, coverage remains incomplete in remote regions of Afar, Somali, and Benishangul-Gumuz regional states.'},
+  {cat:'Endocrine',term:'Aldosterone',def:'Mineralocorticoid hormone from the zona glomerulosa of the adrenal cortex. Secreted in response to angiotensin II (low blood pressure), high blood K+, or low blood Na+. Actions: promotes Na+ reabsorption and K+ secretion in the DCT and collecting duct of the nephron, increasing water retention and blood pressure.',eth:'Salt-sensitive hypertension - linked to high aldosterone activity - is more common in populations with West/East African ancestry, including Ethiopians. ACE inhibitors (reducing angiotensin II and thus aldosterone) are first-line antihypertensives in Ethiopian hypertension guidelines.'},
+  {cat:'Endocrine',term:'Adrenaline (epinephrine)',def:'Catecholamine hormone from the adrenal medulla. Released within 1-2 seconds of a threat (faster than cortisol). Actions: raises heart rate and force, dilates bronchioles, redirects blood to muscles, mobilises glucose (glycogenolysis), dilates pupils. Prepares the body for fight-or-flight. Half-life ~2 minutes.',eth:'Ethiopian long-distance runners show trained attenuation of the adrenaline response - lower adrenaline and cortisol spikes compared to untrained runners at equivalent workloads. This metabolic efficiency is a hallmark of elite endurance training adaptation.'},
+  {cat:'Endocrine',term:'Homeostasis',def:'The maintenance of a constant internal environment within narrow limits despite changes in the external environment. Involves receptors (detect change), a control centre (compare with set point), and effectors (produce corrective response). Most homeostatic systems use negative feedback. Examples: blood glucose, body temperature, blood osmolarity.',eth:'Ethiopian athletes competing in diverse environments (Addis Ababa 2400m altitude, hot lowlands) demonstrate exceptional homeostatic flexibility - maintaining core temperature, blood glucose, and blood pressure despite extreme external conditions.'},
+  {cat:'Endocrine',term:'Hypothalamic-pituitary axis',def:'The control hierarchy of the endocrine system. Hypothalamus releases releasing hormones into portal blood -> anterior pituitary responds by releasing trophic hormones -> target glands secrete hormones -> negative feedback to hypothalamus and pituitary. The axis coordinates the entire endocrine system in response to internal and external signals.',eth:'The HPT axis (hypothalamus-pituitary-thyroid) adjusts metabolic rate in response to temperature. Ethiopian highlanders in cold mountain regions (Simien Mountains, average temperature ~10 C at 3000m) show increased TSH and T3 levels compared to lowland populations.'},
+  {cat:'Endocrine',term:'Type 2 diabetes',def:'A metabolic disorder characterised by insulin resistance (cells do not respond to insulin) and progressive beta cell failure. Blood glucose remains elevated (hyperglycaemia). Complications: retinopathy, nephropathy, neuropathy, cardiovascular disease. Managed with lifestyle modification, metformin, and eventually insulin.',eth:'Type 2 diabetes prevalence in Ethiopia: ~5% nationally, ~8-10% in urban centres (2020 estimates). Key risk factors: urbanisation, physical inactivity, shift from traditional teff-based diet to refined carbohydrates. Prevention through traditional Ethiopian diet and lifestyle is a national health priority.'},
+
+  // ---- KIDNEY & ADH (11) ----
+  {cat:'Kidney',term:'Nephron',def:'The functional unit of the kidney. Each kidney contains ~1 million nephrons. Consists of: Bowman\'s capsule + glomerulus (filtration), proximal convoluted tubule (bulk reabsorption), loop of Henle (countercurrent multiplier), distal convoluted tubule (fine tuning), and collecting duct (ADH-regulated water reabsorption). Produces ~1-2L urine per day.',eth:'CKD destroys nephrons irreversibly. Ethiopia loses approximately 15-20% of kidneys to CKD before patients reach hospital care. Dialysis capacity is severely limited - only Black Lion Hospital has significant haemodialysis capacity, making prevention paramount.'},
+  {cat:'Kidney',term:'Glomerular filtration rate (GFR)',def:'The volume of fluid filtered from blood into the Bowman\'s capsule per minute. Normal GFR: ~125 mL/min = 180 L/day. Of this, ~178.5L is reabsorbed and ~1.5L excreted as urine. GFR is determined by net filtration pressure (blood pressure minus oncotic pressure minus capsule pressure). Primary measure of kidney function.',eth:'GFR measurement using creatinine clearance is the standard kidney function test in Ethiopian hospitals. Many patients present with GFR already <30 mL/min (CKD stage 4) because early-stage CKD is asymptomatic. Screening high-risk groups (diabetics, hypertensives) is a priority.'},
+  {cat:'Kidney',term:'Proximal convoluted tubule (PCT)',def:'First tubular segment after Bowman\'s capsule. Lined with cuboidal epithelium with brush border (microvilli). Reabsorbs ~65-70% of all filtered substances: 100% of glucose and amino acids (Na+-coupled cotransporters), most Na+, Cl-, K+, HCO3-, and water (following osmotically). Site of SGLT2 (glucose transporter) action.',eth:'SGLT2 inhibitors (gliflozins) block glucose reabsorption in the PCT, causing glycosuria. This novel class of diabetes drugs is now available at some Ethiopian private hospitals and reduces both blood glucose and cardiovascular mortality.'},
+  {cat:'Kidney',term:'Loop of Henle',def:'Hairpin-shaped tube creating the countercurrent multiplier: builds osmotic gradient from 300 mOsm/L (cortex) to 1200 mOsm/L (medullary tip). Descending limb: permeable to water only (water leaves). Thick ascending limb: NKCC2 actively pumps Na+/K+/2Cl- out (impermeable to water). This gradient enables urine concentration.',eth:'Furosemide (loop diuretic) blocks NKCC2, destroying the medullary gradient. Widely used in Ethiopian hospitals for heart failure and hypertension. Furosemide-treated patients must be monitored for hypokalaemia (low blood K+) - a dangerous side effect.'},
+  {cat:'Kidney',term:'ADH (vasopressin)',def:'Antidiuretic hormone - a peptide hormone produced in the hypothalamus and released from the posterior pituitary. Released when blood osmolarity rises above 295 mOsm/L (detected by hypothalamic osmoreceptors). Acts on collecting duct principal cells via V2 receptors, increasing aquaporin-2 (AQP2) insertion and water reabsorption.',eth:'Ethiopian runners can lose 2-3% body weight in sweat during a marathon. Rising blood osmolarity triggers ADH release from the posterior pituitary within minutes. The collecting duct inserts AQP2 channels, concentrating urine to conserve water during the Addis Ababa Marathon.'},
+  {cat:'Kidney',term:'Aquaporin-2 (AQP2)',def:'The ADH-regulated water channel inserted into the apical membrane of collecting duct principal cells in response to ADH. ADH binds V2 receptors -> cAMP -> PKA -> AQP2 vesicles fuse with apical membrane -> water flows out by osmosis into hypertonic medulla. Without ADH: collecting duct is water-impermeable.',eth:'Mutations in AQP2 or V2 receptor cause nephrogenic diabetes insipidus - producing 10-20L of dilute urine per day despite normal ADH levels. Cases have been reported in Ethiopia; affected individuals must drink continuously to prevent fatal dehydration.'},
+  {cat:'Kidney',term:'Osmoregulation',def:'The homeostatic regulation of body fluid osmolarity (~290 mOsm/L). Key mechanisms: ADH (water retention via AQP2 in collecting duct), aldosterone (Na+ retention in DCT/CD), thirst (behavioural water intake). Osmoreceptors in the hypothalamus detect changes of as little as 1-2 mOsm/L.',eth:'Ethiopian highland communities at altitude (2400-3000m) have adapted osmoregulation - lower plasma volume but higher red blood cell concentration. The kidney maintains osmolarity despite lower total blood volume through increased aldosterone and ADH sensitivity.'},
+  {cat:'Kidney',term:'Ultrafiltration',def:'The process at the glomerulus where hydrostatic pressure (~60 mmHg) forces water, glucose, urea, ions, and small molecules from blood into Bowman\'s capsule. Large molecules (proteins >69 kDa) and blood cells are retained. The filtrate is essentially plasma minus proteins. Driven entirely by blood pressure.',eth:'Proteinuria (protein in urine) indicates glomerular filtration membrane damage - a hallmark of diabetic nephropathy and hypertensive nephropathy, the two leading causes of CKD in Ethiopia. Urine dipstick testing for proteinuria is recommended in Ethiopian primary health care.'},
+  {cat:'Kidney',term:'Countercurrent multiplier',def:'The mechanism by which the loop of Henle creates a progressively increasing osmotic gradient in the renal medulla (300 -> 1200 mOsm/L). The descending and ascending limbs run parallel and in opposite directions, multiplying the small gradient created at each level of the ascending limb into a large corticomedullary gradient.',eth:'The countercurrent multiplier is most effective when blood flow through the vasa recta is slow - allowing the osmotic gradient to be maintained. Dehydrated Ethiopian farmers in the Awash valley (40 C heat) produce maximally concentrated urine (up to 1200 mOsm/L) via this mechanism.'},
+  {cat:'Kidney',term:'Renin-angiotensin-aldosterone system',def:'A hormonal cascade controlling blood pressure and Na+ balance. Low blood pressure -> kidney juxtaglomerular cells release renin -> converts angiotensinogen to angiotensin I -> ACE converts to angiotensin II -> causes vasoconstriction + aldosterone release (Na+ retention) + ADH release. Net result: raised blood pressure.',eth:'ACE inhibitors (lisinopril, enalapril) block angiotensin II formation, reducing both blood pressure and aldosterone-mediated Na+ retention. The most widely prescribed antihypertensives in Ethiopia - used in combination with thiazide diuretics and calcium channel blockers.'},
+  {cat:'Kidney',term:'Selective reabsorption',def:'The process by which useful substances (glucose, amino acids, water, ions) are returned from the tubular filtrate to the blood. Occurs mainly in the PCT (65-70%) and to a lesser extent in the loop of Henle, DCT, and collecting duct. Some substances are actively transported; others follow passively (osmosis, diffusion).',eth:'The selectivity of reabsorption breaks down in diabetes mellitus when blood glucose exceeds the transport maximum (~11 mmol/L). Glucose appears in urine (glycosuria) - the basis of the traditional Ethiopian test of dipping a finger in urine and tasting for sweetness (historically used to diagnose diabetes).'}
+];
+
+// =============================================
+var cards = allCards.slice();
+var currentIdx = 0;
+var flipped = false;
+var ratings = {}; // index -> 0,1,2
+var filtered = cards.slice();
+
+var catColors = {
+  'Neuron':'#3a8fff','Action Potential':'#e74c3c','Synapse':'#9b59b6',
+  'Endocrine':'#27ae60','Kidney':'#1abc9c'
+};
+
+function getColor(cat){ return catColors[cat]||'#311B92'; }
+
+function showCard(){
+  if(!filtered.length) return;
+  var c = filtered[currentIdx];
+  var col = getColor(c.cat);
+  document.getElementById('fCat').textContent = c.cat;
+  document.getElementById('fCat').style.background = col+'33';
+  document.getElementById('fCat').style.color = col;
+  document.getElementById('fTerm').textContent = c.term;
+  document.getElementById('bCat').textContent = c.cat;
+  document.getElementById('bCat').style.background = col;
+  document.getElementById('bCat').style.color = '#fff';
+  document.getElementById('bDef').textContent = c.def;
+  document.getElementById('bEth').innerHTML = '<b>Ethiopian context: </b>' + c.eth;
+  document.getElementById('counter').textContent = (currentIdx+1)+' / '+filtered.length;
+  // Reset flip
+  if(flipped){ document.getElementById('card').classList.remove('flipped'); flipped=false; }
+  updateStats();
+}
+
+function flipCard(){
+  flipped = !flipped;
+  document.getElementById('card').classList.toggle('flipped', flipped);
+}
+
+function nextCard(){
+  if(currentIdx < filtered.length-1){ currentIdx++; showCard(); }
+}
+function prevCard(){
+  if(currentIdx > 0){ currentIdx--; showCard(); }
+}
+
+function rateCard(r){
+  var c = filtered[currentIdx];
+  var key = allCards.indexOf(c);
+  ratings[key] = r;
+  updateStats();
+  updateProgress();
+  if(currentIdx < filtered.length-1){ currentIdx++; showCard(); }
+}
+
+function shuffleCards(){
+  for(var i=filtered.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=filtered[i];filtered[i]=filtered[j];filtered[j]=t;}
+  currentIdx=0; showCard();
+}
+
+function resetAll(){
+  ratings={}; filtered=allCards.slice(); currentIdx=0;
+  document.getElementById('catFilter').value='all';
+  updateCatDots('all');
+  showCard(); updateStats(); updateProgress();
+}
+
+function filterCat(){
+  var val = document.getElementById('catFilter').value;
+  filtered = val==='all' ? allCards.slice() : allCards.filter(function(c){return c.cat===val;});
+  currentIdx=0; showCard(); updateCatDots(val);
+}
+
+function updateProgress(){
+  var learned = Object.keys(ratings).filter(function(k){return ratings[k]===2;}).length;
+  document.getElementById('progText').textContent = learned+' / '+allCards.length+' learned';
+  document.getElementById('progBar').style.width = (learned/allCards.length*100)+'%';
+}
+
+function updateStats(){
+  var counts=[0,0,0];
+  Object.values(ratings).forEach(function(r){counts[r]++;});
+  var unseen=allCards.length-Object.keys(ratings).length;
+  document.getElementById('stat0').textContent=counts[0]+' still learning';
+  document.getElementById('stat1').textContent=counts[1]+' almost';
+  document.getElementById('stat2').textContent=counts[2]+' got it';
+  document.getElementById('statU').textContent=unseen+' unseen';
+}
+
+function buildCatDots(){
+  var el=document.getElementById('catDots');
+  var cats=['all','Neuron','Action Potential','Synapse','Endocrine','Kidney'];
+  var labels=['All (55)','Neuron (11)','Action Potential (10)','Synapse (11)','Endocrine (12)','Kidney (11)'];
+  cats.forEach(function(cat,i){
+    var d=document.createElement('div');
+    d.className='cat-dot active';
+    d.textContent=labels[i];
+    var col=cat==='all'?'#311B92':getColor(cat);
+    d.style.borderColor=col;d.style.color=col;
+    d.setAttribute('data-cat',cat);
+    d.onclick=function(){
+      document.getElementById('catFilter').value=cat;
+      filterCat();
+    };
+    el.appendChild(d);
+  });
+}
+
+function updateCatDots(active){
+  document.querySelectorAll('.cat-dot').forEach(function(d){
+    d.classList.toggle('active', d.getAttribute('data-cat')===active);
+  });
+}
+
+buildCatDots();
+showCard();
+updateStats();
+</script>
+</body>
+</html>

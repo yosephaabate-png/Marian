@@ -98,6 +98,7 @@ const SUBJECT_COLORS = {
   History: '#8b6914',
   Amharic: '#0d5c3a',
   Geography: '#1a7a6e',
+  Economics: '#b8860b',
 };
 
 // Progress bar

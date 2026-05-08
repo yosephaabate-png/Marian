@@ -52,7 +52,7 @@ const SUBJECTS_LANDING = [
   { name: 'Biology', nameAm: 'ባዮሎጂ', icon: '🧬', color: SUBJECT_COLORS.Biology },
   { name: 'Chemistry', nameAm: 'ኬሚስትሪ', icon: '⚗️', color: SUBJECT_COLORS.Chemistry },
   { name: 'English', nameAm: 'እንግሊዘኛ', icon: '📚', color: SUBJECT_COLORS.English },
-  { name: 'Amharic', nameAm: 'አማርኛ', icon: '✍️', color: SUBJECT_COLORS.Amharic },
+  { name: 'Economics', nameAm: 'ኢኮኖሚክስ', icon: '💹', color: SUBJECT_COLORS.Economics },
   { name: 'History', nameAm: 'ታሪክ', icon: '📜', color: SUBJECT_COLORS.History },
   { name: 'Geography', nameAm: 'ጂኦግራፊ', icon: '🌍', color: SUBJECT_COLORS.Geography },
 ];
@@ -101,6 +101,334 @@ const FAQ = [
   },
 ];
 
+const INTERACTIVE_TOOLS = [
+  {
+    id: 'neuron',
+    name: '3D Neuron Explorer',
+    nameAm: 'የነርቭ ሕዋስ',
+    subject: 'Biology',
+    grade: 'Grade 11 · Unit 5',
+    color: '#7B1FA2',
+    tagline: 'Rotate a myelinated motor neuron in real 3D and click any part to learn its function.',
+    file: 'tools/neuron-3d-explorer.html',
+    accent: 'rgba(123,31,162,0.10)',
+    canvasBg: '#0d5c3a',
+    cropCanvas: (doc, win) => {
+      doc.querySelectorAll('h1,.sub,.right,.ptabs,.cv-hint').forEach(e => e.style.display = 'none');
+      doc.documentElement.style.height = '100%';
+      doc.body.style.cssText += ';height:100vh;margin:0;background:#0d5c3a;overflow:hidden;';
+      const left = doc.querySelector('.left'); if (left) { left.style.cssText += ';padding:0;background:#0d5c3a;height:100%;flex:1 1 auto;'; }
+      const wrap = doc.querySelector('.wrap'); if (wrap) { wrap.style.cssText += ';min-height:0;gap:0;height:100%;'; }
+      const c = doc.getElementById('nc'); if (c) { c.style.cssText += ';height:100%;border-radius:0;background:#0d5c3a;'; }
+      win.dispatchEvent(new Event('resize'));
+      setTimeout(() => win.dispatchEvent(new Event('resize')), 300);
+      setTimeout(() => win.dispatchEvent(new Event('resize')), 1000);
+    },
+  },
+  {
+    id: 'bacteria',
+    name: 'Bacteria Cell Explorer',
+    nameAm: 'ባክቴሪያ ሕዋስ',
+    subject: 'Biology',
+    grade: 'Grade 12 · Unit 2',
+    color: '#311B92',
+    tagline: 'Animated 3D Gram-negative bacterium with live flagellum rotation and antibiotic targets.',
+    file: 'tools/bacteria-cell-explorer.html',
+    accent: 'rgba(49,27,146,0.10)',
+    canvasBg: '#0d5c3a',
+    cropCanvas: (doc, win) => {
+      doc.querySelectorAll('header,.info-col,.hint').forEach(e => e.style.display = 'none');
+      doc.documentElement.style.height = '100%';
+      doc.body.style.cssText += ';height:100vh;margin:0;background:#0d5c3a;overflow:hidden;';
+      const app = doc.querySelector('.app'); if (app) { app.style.cssText += ';height:100vh;background:#0d5c3a;'; }
+      const m = doc.querySelector('.main'); if (m) { m.style.cssText += ';grid-template-columns:1fr;min-height:0;height:100%;display:block;'; }
+      const cc = doc.querySelector('.canvas-col'); if (cc) { cc.style.cssText += ';border-right:none;padding:0;background:#0d5c3a;height:100%;display:block;'; }
+      const h2 = doc.querySelector('.canvas-col h2'); if (h2) h2.style.display = 'none';
+      const c = doc.getElementById('myCanvas'); if (c) { c.style.cssText += ';height:100vh;width:100%;border-radius:0;display:block;background:#0d5c3a;'; }
+      win.dispatchEvent(new Event('resize'));
+      setTimeout(() => win.dispatchEvent(new Event('resize')), 300);
+      setTimeout(() => win.dispatchEvent(new Event('resize')), 1000);
+    },
+  },
+  {
+    id: 'greenhouse',
+    name: 'Greenhouse Effect Simulator',
+    nameAm: 'የግሪንሃውስ ተጽዕኖ',
+    subject: 'Geography · Chemistry',
+    grade: 'Grade 11 · Unit 6',
+    color: '#27ae60',
+    tagline: 'Slide CO₂ from 180 to 800 ppm and watch global temperature respond live.',
+    file: 'tools/greenhouse-simulator.html',
+    accent: 'rgba(39,174,96,0.10)',
+    canvasBg: '#0d5c3a',
+    cropCanvas: (doc) => {
+      doc.querySelectorAll('h1,.sub,.controls,.info-panel').forEach(e => e.style.display = 'none');
+      doc.body.style.background = '#0d5c3a';
+      const l = doc.querySelector('.layout'); if (l) l.style.padding = '0';
+      const cw = doc.querySelector('.canvas-wrap'); if (cw) cw.style.maxWidth = '100%';
+      const c = doc.getElementById('ghCanvas'); if (c) { c.style.height = '100%'; c.style.borderRadius = '0'; c.style.border = 'none'; }
+    },
+  },
+  {
+    id: 'flashcards',
+    name: 'Adaptive Flashcards',
+    nameAm: 'የማስታወሻ ካርዶች',
+    subject: 'All Subjects',
+    grade: 'Spaced repetition',
+    color: '#D4AF37',
+    tagline: 'Flip-card review with category filtering and spaced repetition rating.',
+    file: 'tools/flashcards.html',
+    accent: 'rgba(212,175,55,0.12)',
+    canvasBg: '#0d5c3a',
+    cropCanvas: (doc, win) => {
+      doc.querySelectorAll('h1,.sub,.controls,.nav-row,.rate-row,.cat-dots,.stats-bar').forEach(e => e.style.display = 'none');
+      doc.documentElement.style.height = '100%';
+      doc.body.style.background = 'linear-gradient(135deg,#0d5c3a,#1a3a2a)';
+      doc.body.style.height = '100vh';
+      doc.body.style.margin = '0';
+      doc.body.style.display = 'flex';
+      doc.body.style.alignItems = 'center';
+      doc.body.style.justifyContent = 'center';
+      const ca = doc.querySelector('.card-area'); if (ca) { ca.style.padding = '24px'; ca.style.background = 'transparent'; ca.style.minHeight = '0'; ca.style.height = '100%'; ca.style.width = '100%'; ca.style.boxSizing = 'border-box'; }
+      const cw = doc.querySelector('.card-wrap'); if (cw) { cw.style.maxWidth = '92%'; cw.style.height = '78%'; }
+      const card = doc.querySelector('.card');
+      if (card) { card.style.height = '100%'; }
+      // Auto-flip the card every 2.6s
+      if (card && !card.__autoFlip) {
+        card.__autoFlip = true;
+        setInterval(() => card.classList.toggle('flipped'), 2600);
+      }
+    },
+  },
+];
+
+const NATURAL_W = 720;
+const NATURAL_H = 320;
+
+function ToolPreviewCard({ tool, navigate }) {
+  const ref = React.useRef(null);
+  const wrapRef = React.useRef(null);
+  const [loaded, setLoaded] = React.useState(false);
+  const [scale, setScale] = React.useState(1);
+
+  React.useEffect(() => {
+    if (!wrapRef.current) return;
+    const compute = () => {
+      const el = wrapRef.current;
+      if (!el) return;
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      setScale(Math.max(w / NATURAL_W, h / NATURAL_H));
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(wrapRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  const handleLoad = () => {
+    try {
+      const iframe = ref.current;
+      const doc = iframe && iframe.contentDocument;
+      const win = iframe && iframe.contentWindow;
+      if (doc && tool.cropCanvas) {
+        tool.cropCanvas(doc, win);
+        setTimeout(() => { try { tool.cropCanvas(doc, win); } catch (e) {} }, 500);
+        setTimeout(() => { try { tool.cropCanvas(doc, win); } catch (e) {} }, 1500);
+      }
+    } catch (e) { /* swallow */ }
+    setLoaded(true);
+  };
+
+  return (
+    <div style={{
+      border: `1.5px solid ${BRAND.border}`,
+      borderRadius: 14,
+      overflow: 'hidden',
+      background: '#fff',
+      display: 'flex', flexDirection: 'column',
+      boxShadow: '0 6px 20px rgba(13,92,58,0.06)',
+      transition: 'transform 0.2s, box-shadow 0.2s',
+    }}>
+      {/* Canvas-only viewport (non-interactive) */}
+      <div ref={wrapRef} style={{
+        position: 'relative',
+        height: 280,
+        background: tool.canvasBg,
+        overflow: 'hidden',
+        borderBottom: `1px solid ${BRAND.border}`,
+      }}>
+        {!loaded && (
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 1,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#ffffff60', fontSize: 11, letterSpacing: 0.5,
+          }}>Loading preview…</div>
+        )}
+        <iframe
+          ref={ref}
+          src={tool.file}
+          onLoad={handleLoad}
+          title={tool.name}
+          scrolling="no"
+          tabIndex={-1}
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '50%', left: '50%',
+            width: NATURAL_W, height: NATURAL_H,
+            border: 'none',
+            display: 'block',
+            pointerEvents: 'none',
+            transformOrigin: 'center center',
+            transform: `translate(-50%, -50%) scale(${scale})`,
+            opacity: loaded ? 1 : 0,
+            transition: 'opacity 0.3s',
+            background: tool.canvasBg,
+          }}
+        />
+        {/* Live indicator */}
+        <div style={{
+          position: 'absolute', top: 12, right: 12,
+          display: 'flex', alignItems: 'center', gap: 6,
+          background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)',
+          padding: '4px 10px', borderRadius: 99,
+          fontSize: 10, fontWeight: 700, letterSpacing: 0.6,
+          color: '#fff', zIndex: 2,
+        }}>
+          <span style={{
+            width: 6, height: 6, borderRadius: '50%', background: '#27ae60',
+            boxShadow: '0 0 0 3px rgba(39,174,96,0.25)',
+          }} />
+          LIVE CANVAS
+        </div>
+        {/* Subject ribbon */}
+        <div style={{
+          position: 'absolute', top: 12, left: 12,
+          fontSize: 9, fontWeight: 800, letterSpacing: 0.8,
+          color: '#fff', background: tool.color,
+          padding: '4px 10px', borderRadius: 4,
+          textTransform: 'uppercase',
+          zIndex: 2,
+        }}>
+          {tool.subject}
+        </div>
+      </div>
+
+      {/* Meta row */}
+      <div style={{ padding: '16px 18px 18px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <div style={{
+          fontSize: 10, fontWeight: 700, color: tool.color,
+          letterSpacing: 0.5, marginBottom: 6,
+        }}>{tool.grade}</div>
+        <h3 style={{
+          fontFamily: 'Playfair Display, Georgia, serif',
+          fontSize: 19, fontWeight: 700, color: BRAND.dark,
+          lineHeight: 1.2, margin: '0 0 4px',
+        }}>{tool.name}</h3>
+        <div style={{ fontSize: 12, color: BRAND.muted, fontWeight: 600, marginBottom: 10 }}>
+          {tool.nameAm}
+        </div>
+        <p style={{
+          fontSize: 13, color: BRAND.muted, lineHeight: 1.55,
+          margin: '0 0 14px', flex: 1,
+        }}>{tool.tagline}</p>
+        <a
+          href={tool.file}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            color: tool.color, fontSize: 13, fontWeight: 700,
+            textDecoration: 'none', alignSelf: 'flex-start',
+          }}
+        >
+          Try it ↗
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function InteractiveToolsShowcase({ navigate }) {
+
+  return (
+    <section id="tools" style={{ padding: '72px 36px', background: '#fff', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        {/* Heading */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 36, alignItems: 'end', marginBottom: 36 }}>
+          <div>
+            <span style={{ fontSize: 11, fontWeight: 700, color: BRAND.gold, letterSpacing: 1.5 }}>HANDS-ON LEARNING · በተግባር መማር</span>
+            <h2 style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 38, margin: '8px 0 12px', fontWeight: 700, color: BRAND.dark, lineHeight: 1.1 }}>
+              Real interactive tools.<br/>
+              <span style={{ color: BRAND.primary, fontStyle: 'italic' }}>Not just videos.</span>
+            </h2>
+            <p style={{ color: BRAND.muted, fontSize: 15, margin: 0, maxWidth: 520, lineHeight: 1.6 }}>
+              Every MyMarian unit ships with browser-based simulators, 3D explorers and adaptive flashcards. Try four of them right here — no signup required.
+            </p>
+          </div>
+          <div style={{
+            display: 'flex', gap: 18, justifyContent: 'flex-end', flexWrap: 'wrap',
+            paddingBottom: 6,
+          }}>
+            {[
+              { num: '40+', label: 'Live tools' },
+              { num: '8', label: 'Subjects covered' },
+              { num: '100%', label: 'Browser-based' },
+            ].map(s => (
+              <div key={s.label} style={{ textAlign: 'right' }}>
+                <div style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 26, fontWeight: 800, color: BRAND.dark, lineHeight: 1 }}>{s.num}</div>
+                <div style={{ fontSize: 11, color: BRAND.muted, marginTop: 4, fontWeight: 600, letterSpacing: 0.3 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tool grid — canvas-only, non-interactive previews */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: 18,
+        }}>
+          {INTERACTIVE_TOOLS.map(t => (
+            <ToolPreviewCard key={t.id} tool={t} navigate={navigate} />
+          ))}
+        </div>
+
+        {/* Browse all CTA */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
+          <button
+            onClick={() => navigate('tools')}
+            style={{
+              background: BRAND.dark, color: '#fff',
+              border: 'none', borderRadius: 8,
+              padding: '12px 22px', fontSize: 13, fontWeight: 700,
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            Browse all 40+ tools →
+          </button>
+        </div>
+
+        {/* Trust strip below */}
+        <div style={{
+          display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 24,
+          marginTop: 22, flexWrap: 'wrap',
+          fontSize: 12, color: BRAND.muted,
+        }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ color: '#27ae60' }}>●</span> Works on phones &amp; low-bandwidth connections
+          </span>
+          <span style={{ width: 1, height: 14, background: BRAND.border }} />
+          <span>No installation · runs in your browser</span>
+          <span style={{ width: 1, height: 14, background: BRAND.border }} />
+          <span>Aligned with Ethiopian curriculum units</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function LandingPage({ navigate }) {
   const [openFaq, setOpenFaq] = React.useState(0);
 
@@ -138,6 +466,7 @@ function LandingPage({ navigate }) {
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <a href="#features" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>Features</a>
+          <a href="#tools" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>Tools</a>
           <a href="#subjects" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>Subjects</a>
           <a href="#pricing" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>Pricing</a>
           <a href="#faq" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>FAQ</a>
@@ -318,6 +647,9 @@ function LandingPage({ navigate }) {
           </div>
         </div>
       </section>
+
+      {/* Interactive Tools showcase */}
+      <InteractiveToolsShowcase navigate={navigate} />
 
       {/* Subjects */}
       <section id="subjects" style={{ padding: '64px 36px', background: BRAND.cream, position: 'relative', overflow: 'hidden' }}>

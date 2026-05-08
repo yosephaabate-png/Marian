@@ -1,0 +1,434 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3D Neuron Explorer - Unit 5</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:#F3E5F5;color:#311B92;}
+h1{background:#311B92;color:#7B1FA2;padding:11px 18px;font-size:.95rem;}
+.sub{background:#2a5298;color:#e8d8a0;padding:4px 18px;font-size:.75rem;}
+.wrap{display:flex;gap:0;min-height:calc(100vh - 56px);}
+
+/* LEFT: 3D canvas area */
+.left{flex:1;min-width:0;background:#080e1a;display:flex;flex-direction:column;padding:10px;}
+canvas#nc{display:block;width:100%;height:460px;cursor:grab;touch-action:none;border-radius:8px;background:#080e1a;}
+canvas#nc:active{cursor:grabbing;}
+.cv-hint{text-align:center;font-size:.7rem;color:#556;padding:5px 0 8px;}
+
+/* Part selector tabs */
+.ptabs{display:flex;flex-wrap:wrap;gap:5px;padding:0 2px 6px;}
+.ptab{padding:5px 11px;border:2px solid #334;border-radius:16px;cursor:pointer;font-size:.72rem;font-weight:bold;color:#aab;background:transparent;transition:all .18s;}
+.ptab:hover{border-color:#7B1FA2;color:#7B1FA2;}
+.ptab.active{background:#7B1FA2;color:#311B92;border-color:#7B1FA2;}
+
+/* RIGHT: info panel */
+.right{width:310px;flex-shrink:0;background:#fff;border-left:3px solid #7B1FA2;overflow-y:auto;display:flex;flex-direction:column;}
+.rhead{background:#311B92;color:#7B1FA2;padding:10px 14px;font-size:.85rem;font-weight:bold;}
+.part-info{padding:12px 14px;flex:1;}
+.part-name{font-size:1rem;font-weight:bold;color:#311B92;margin-bottom:4px;}
+.part-func{font-size:.8rem;line-height:1.7;color:#333;margin-bottom:10px;}
+.part-fact{background:#fff8e1;border-left:3px solid #7B1FA2;padding:7px 10px;border-radius:0 5px 5px 0;font-size:.76rem;line-height:1.6;color:#555;margin-bottom:10px;}
+.part-fact b{color:#311B92;display:block;margin-bottom:2px;}
+.eth-box{background:#e8f4e8;border-left:3px solid #27ae60;padding:8px 10px;border-radius:0 5px 5px 0;font-size:.76rem;line-height:1.6;color:#333;}
+.eth-box b{color:#311B92;display:block;margin-bottom:2px;}
+.divider{height:1px;background:#eee;margin:10px 0;}
+.ion-table{width:100%;border-collapse:collapse;font-size:.72rem;margin-top:6px;}
+.ion-table th{background:#311B92;color:#7B1FA2;padding:4px 6px;text-align:left;}
+.ion-table td{border:1px solid #e0e6f0;padding:4px 6px;}
+.ion-table tr:nth-child(even) td{background:#F3E5F5;}
+.legend{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px;border-top:1px solid #eee;}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:.68rem;color:#666;}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+</style>
+</head>
+<body>
+<h1>3D Neuron Explorer - Marian School Ethiopia - Unit 5: Nervous System</h1>
+<div class="sub">Myelinated Motor Neuron | Drag to rotate | Scroll to zoom | Click a part tab to highlight</div>
+<div class="wrap">
+  <div class="left">
+    <canvas id="nc"></canvas>
+    <p class="cv-hint">Drag to rotate | Scroll to zoom | Use tabs below to highlight parts</p>
+    <div class="ptabs" id="ptabs"></div>
+  </div>
+  <div class="right">
+    <div class="rhead" id="rhead">Select a part to learn more</div>
+    <div class="part-info" id="partInfo">
+      <p style="color:#999;font-size:.8rem;margin-top:8px;">Click any tab below the neuron to highlight that part and see its structure and function here.</p>
+      <div class="divider"></div>
+      <div class="eth-box"><b>Ethiopian Context</b>Ethiopian marathon runners (Haile Gebrselassie, Eliud Kipchoge's rival Kenenisa Bekele) have highly trained nervous systems - faster signal conduction, more efficient motor neuron recruitment, and superior proprioception developed through years of barefoot running on varied terrain.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+var dpr = window.devicePixelRatio || 1;
+var cv = document.getElementById('nc');
+var ctx = cv.getContext('2d');
+var W, H, CX, CY;
+var SCALE = 60, FOV = 500;
+var rotX = 0.18, rotY = 0.4, zoom = 1.0;
+var dragging = false, lastX = 0, lastY = 0;
+var activePart = null;
+
+// ---- Part definitions ----
+var parts = [
+  { id:'dendrites',   label:'Dendrites',         color:'#4db6ac', hcolor:'#80cbc4' },
+  { id:'soma',        label:'Cell Body (Soma)',   color:'#1976d2', hcolor:'#42a5f5' },
+  { id:'axon_hillock',label:'Axon Hillock',       color:'#7b1fa2', hcolor:'#ba68c8' },
+  { id:'myelin',      label:'Myelin Sheath',      color:'#f9a825', hcolor:'#ffd54f' },
+  { id:'ranvier',     label:'Node of Ranvier',    color:'#e64a19', hcolor:'#ff7043' },
+  { id:'terminal',    label:'Axon Terminal',      color:'#27ae60', hcolor:'#66bb6a' },
+  { id:'nucleus',     label:'Nucleus',            color:'#c62828', hcolor:'#ef5350' }
+];
+
+var partInfo = {
+  dendrites:{
+    name:'Dendrites',
+    func:'Dendrites are branching extensions of the cell body that receive incoming signals from other neurons or sensory receptors. They have a large surface area covered with receptor proteins and ion channels. Signals arriving at dendrites cause localised graded potentials that travel toward the soma.',
+    fact:{title:'Structure',text:'Each neuron may have thousands of dendrites, dramatically increasing the number of synaptic inputs. Dendritic spines (small protrusions) are sites of synaptic contact and are important in learning and memory.'},
+    eth:'In Ethiopian athletes, repeated motor training strengthens dendritic connections in the motor cortex and cerebellum - a physical manifestation of muscle memory and coordination.'
+  },
+  soma:{
+    name:'Cell Body (Soma)',
+    func:'The soma is the metabolic centre of the neuron. It contains the nucleus (with the neuron\'s DNA), ribosomes, endoplasmic reticulum, and mitochondria. It integrates all incoming signals from dendrites and determines whether to fire an action potential.',
+    fact:{title:'Integration',text:'The soma sums all excitatory and inhibitory signals. If the net depolarisation reaches threshold (-55 mV) at the axon hillock, an action potential is fired. Below threshold: no firing (all-or-nothing law).'},
+    eth:'Neurons in the Ethiopian highlands are adapted to lower oxygen availability - higher mitochondrial density in soma provides energy for the Na+/K+ ATPase pump that maintains resting potential.'
+  },
+  axon_hillock:{
+    name:'Axon Hillock',
+    func:'The axon hillock is the cone-shaped region where the axon emerges from the soma. It has the highest density of voltage-gated Na+ channels in the entire neuron - making it the site where action potentials are initiated when threshold is reached.',
+    fact:{title:'Threshold site',text:'Voltage-gated Na+ channel density at the axon hillock is ~100x higher than on the soma. This makes it the most excitable region. The all-or-nothing action potential is generated here and propagates along the axon.'},
+    eth:'Fast reflex responses in Ethiopian football players depend on rapid action potential initiation at the axon hillock of motor neurons in the spinal cord.'
+  },
+  myelin:{
+    name:'Myelin Sheath',
+    func:'The myelin sheath is a multilayered lipid-rich wrap formed by Schwann cells (in the peripheral nervous system). It insulates the axon, increases electrical resistance, and reduces capacitance - forcing the action potential to jump between nodes of Ranvier (saltatory conduction). This dramatically increases conduction velocity.',
+    fact:{title:'Saltatory conduction',text:'Myelinated axons conduct impulses at 70-120 m/s. Unmyelinated axons conduct at only 0.5-2 m/s. Saltatory conduction is also metabolically efficient - Na+/K+ pumps only need to restore ions at nodes, not along the entire axon.'},
+    eth:'Multiple sclerosis (MS) destroys myelin. MS rates are lower in equatorial regions like Ethiopia - vitamin D from sun exposure may be protective. Ethiopian diet rich in omega-3s from fish (Lake Tana tilapia) also supports myelin integrity.'
+  },
+  ranvier:{
+    name:'Node of Ranvier',
+    func:'Nodes of Ranvier are small gaps (1-2 micrometres) in the myelin sheath where the axon membrane is exposed. They are densely packed with voltage-gated Na+ and K+ channels. During saltatory conduction, the action potential regenerates at each node, jumping from node to node at high speed.',
+    fact:{title:'Spacing',text:'Nodes of Ranvier are spaced approximately 1-2mm apart along the axon. The action potential is regenerated at each node with full amplitude - it does not decay. This is why nerve impulses can travel metres without losing strength.'},
+    eth:'The knee-jerk reflex (patellar reflex) used in Ethiopian clinic neurological exams tests the speed of saltatory conduction through the femoral nerve - a healthy reflex arc takes ~25 ms.'
+  },
+  terminal:{
+    name:'Axon Terminal',
+    func:'Axon terminals (synaptic knobs/boutons) are the swollen ends of the axon at synapses. They contain synaptic vesicles filled with neurotransmitters (e.g. acetylcholine), mitochondria (to provide ATP for neurotransmitter synthesis), and voltage-gated Ca2+ channels that trigger vesicle fusion when the action potential arrives.',
+    fact:{title:'Synaptic vesicles',text:'Each terminal contains hundreds of vesicles, each holding ~5,000-10,000 acetylcholine molecules. When Ca2+ enters through voltage-gated channels, vesicles fuse with the membrane (exocytosis), releasing ACh into the synaptic cleft.'},
+    eth:'Khat (Catha edulis), chewed in Ethiopia and the Horn of Africa, contains cathinone - a stimulant that acts at axon terminals to increase norepinephrine release, producing effects similar to amphetamine.'
+  },
+  nucleus:{
+    name:'Nucleus',
+    func:'The nucleus of the neuron contains the genetic information (DNA) for producing all the proteins the neuron needs - including ion channel proteins, receptor proteins, enzymes for neurotransmitter synthesis, and structural proteins. Neurons are post-mitotic: they cannot divide, so the nucleus is permanent.',
+    fact:{title:'Neuronal longevity',text:'Because neurons cannot replace themselves (mostly), the nucleus must maintain protein production throughout a lifetime. A neuron in your motor cortex today has been there since before birth and contains the same DNA as when you were an embryo.'},
+    eth:'Neurological conditions affecting the nucleus (e.g. motor neuron disease) are studied at Addis Ababa University\'s College of Health Sciences - Ethiopia is developing local neuroscience research capacity.'
+  }
+};
+
+// ---- Build scene objects ----
+// Neuron laid out along X axis, centred at origin
+// Dendrites: left side (negative X), branching
+// Soma: near origin
+// Axon hillock: just right of soma
+// Myelin segments: 4 segments along positive X
+// Nodes of Ranvier: between myelin segments
+// Terminals: far right
+
+function sph(x,y,z,r,partId){ return {kind:'S',p:{x,y,z},r,partId}; }
+function cyl(x1,y1,z1,x2,y2,z2,r,partId){ return {kind:'C',a:{x:x1,y:y1,z:z1},b:{x:x2,y:y2,z:z2},r,partId}; }
+
+function buildScene(){
+  var scene = [];
+  // === DENDRITES (left, branching) ===
+  // Main dendrite trunks
+  var dends = [
+    [{x:-1.2,y:0,z:0},{x:-2.0,y:0.9,z:0.3}],
+    [{x:-1.2,y:0,z:0},{x:-2.1,y:-0.8,z:0.2}],
+    [{x:-1.2,y:0,z:0},{x:-2.0,y:0.1,z:-0.9}],
+    [{x:-1.2,y:0,z:0},{x:-2.0,y:0.2,z:0.9}],
+    [{x:-1.2,y:0,z:0},{x:-1.9,y:-0.5,z:-0.6}],
+  ];
+  dends.forEach(function(d){
+    scene.push(cyl(d[0].x,d[0].y,d[0].z,d[1].x,d[1].y,d[1].z,0.07,'dendrites'));
+    scene.push(sph(d[1].x,d[1].y,d[1].z,0.09,'dendrites'));
+    // Secondary branch
+    var bx=d[1].x-0.5,by=d[1].y+(Math.random()>.5?.5:-.5),bz=d[1].z+(Math.random()>.5?.4:-.4);
+    scene.push(cyl(d[1].x,d[1].y,d[1].z,bx,by,bz,0.045,'dendrites'));
+    scene.push(sph(bx,by,bz,0.06,'dendrites'));
+  });
+
+  // === SOMA (cell body) ===
+  scene.push(sph(0,0,0,0.65,'soma'));
+  // === NUCLEUS inside soma ===
+  scene.push(sph(0.05,0.05,0.05,0.3,'nucleus'));
+
+  // === AXON HILLOCK ===
+  scene.push(cyl(0.65,0,0,1.0,0,0,0.22,'axon_hillock'));
+  scene.push(sph(1.0,0,0,0.14,'axon_hillock'));
+
+  // === MYELIN SEGMENTS (4) + NODES OF RANVIER (3 gaps) ===
+  var myelinSegs = [
+    {x1:1.0,x2:1.75},{x1:1.85,x2:2.6},{x1:2.7,x2:3.45},{x1:3.55,x2:4.3}
+  ];
+  myelinSegs.forEach(function(m,i){
+    // Myelin tube (thick)
+    scene.push(cyl(m.x1,0,0,m.x2,0,0,0.19,'myelin'));
+    // Inner axon (thinner, different part)
+    scene.push(cyl(m.x1,0,0,m.x2,0,0,0.09,'myelin'));
+  });
+  // Nodes of Ranvier (thin exposed axon between segments)
+  var nodes = [1.75,2.6,3.45];
+  nodes.forEach(function(nx){
+    scene.push(cyl(nx,0,0,nx+0.10,0,0,0.09,'ranvier'));
+    scene.push(sph(nx+0.05,0,0,0.11,'ranvier'));
+  });
+
+  // === AXON TERMINALS (branching at far right) ===
+  var terms = [
+    {x:4.3,y:0,z:0},{dx:0.4,dy:0.55,dz:0.2},
+    {x:4.3,y:0,z:0},{dx:0.4,dy:-0.5,dz:0.2},
+    {x:4.3,y:0,z:0},{dx:0.4,dy:0.1,dz:0.55},
+    {x:4.3,y:0,z:0},{dx:0.4,dy:0.1,dz:-0.5},
+  ];
+  for(var i=0;i<terms.length;i+=2){
+    var base=terms[i],d=terms[i+1];
+    scene.push(cyl(base.x,base.y,base.z,base.x+d.dx,base.y+d.dy,base.z+d.dz,0.06,'terminal'));
+    scene.push(sph(base.x+d.dx,base.y+d.dy,base.z+d.dz,0.14,'terminal'));
+  }
+
+  return scene;
+}
+
+var scene = buildScene();
+
+// ---- Rotation helpers ----
+function rotateX(p,a){ return {x:p.x, y:p.y*Math.cos(a)-p.z*Math.sin(a), z:p.y*Math.sin(a)+p.z*Math.cos(a)}; }
+function rotateY(p,a){ return {x:p.x*Math.cos(a)+p.z*Math.sin(a), y:p.y, z:-p.x*Math.sin(a)+p.z*Math.cos(a)}; }
+function project(p){
+  var q = rotateX(p, rotX);
+  q = rotateY(q, rotY);
+  var zd = q.z * zoom * SCALE + FOV;
+  var f = FOV / Math.max(zd, 1);
+  return {sx: CX + q.x * zoom * SCALE * f, sy: CY - q.y * zoom * SCALE * f, f:f, depth: q.z};
+}
+
+function getColor(partId, opacity){
+  var p = parts.find(function(p){return p.id===partId;});
+  if(!p) return '#888';
+  var c = (activePart===partId) ? p.hcolor : p.color;
+  if(activePart && activePart!==partId) {
+    // dim other parts
+    return c + '55';
+  }
+  return c;
+}
+
+function lighten(hex,amt){
+  try{
+    var v=hex.replace('#','').substring(0,6);
+    var r=Math.min(255,parseInt(v.slice(0,2),16)+amt);
+    var g=Math.min(255,parseInt(v.slice(2,4),16)+amt);
+    var b=Math.min(255,parseInt(v.slice(4,6),16)+amt);
+    return'rgb('+r+','+g+','+b+')';
+  }catch(e){return hex;}
+}
+function darken(hex,amt){
+  try{
+    var v=hex.replace('#','').substring(0,6);
+    var r=Math.max(0,parseInt(v.slice(0,2),16)-amt);
+    var g=Math.max(0,parseInt(v.slice(2,4),16)-amt);
+    var b=Math.max(0,parseInt(v.slice(4,6),16)-amt);
+    return'rgb('+r+','+g+','+b+')';
+  }catch(e){return hex;}
+}
+
+function render(){
+  ctx.clearRect(0,0,W,H);
+  // Background
+  var bg = ctx.createRadialGradient(CX,CY*.7,20,CX,CY,Math.max(W,H)*.7);
+  bg.addColorStop(0,'#141e30'); bg.addColorStop(1,'#080e1a');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  // Project all objects
+  var projected = scene.map(function(o){
+    if(o.kind==='S'){
+      var pr = project(o.p);
+      return Object.assign({},o,{depth:pr.depth, pr:pr});
+    } else {
+      var pa = project(o.a), pb = project(o.b);
+      return Object.assign({},o,{depth:(pa.depth+pb.depth)/2, pa:pa, pb:pb});
+    }
+  }).sort(function(a,b){ return a.depth - b.depth; });
+
+  // Draw
+  projected.forEach(function(o){
+    var col = getColor(o.partId, 1.0);
+    var alpha = (activePart && activePart!==o.partId) ? 0.25 : 1.0;
+    ctx.globalAlpha = alpha;
+
+    if(o.kind==='C'){
+      var af = (o.pa.f + o.pb.f) / 2;
+      var lw = Math.max(1.5, o.r * SCALE * zoom * af * 1.6);
+      ctx.beginPath();
+      ctx.moveTo(o.pa.sx, o.pa.sy);
+      ctx.lineTo(o.pb.sx, o.pb.sy);
+      ctx.strokeStyle = col;
+      ctx.lineWidth = lw;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    } else {
+      var r = Math.max(2, o.r * SCALE * zoom * o.pr.f);
+      var g2 = ctx.createRadialGradient(o.pr.sx-r*.3,o.pr.sy-r*.3,r*.05,o.pr.sx,o.pr.sy,r);
+      var baseCol = col.startsWith('rgb') ? col : col;
+      g2.addColorStop(0, lighten(col,70));
+      g2.addColorStop(0.5, col);
+      g2.addColorStop(1, darken(col,50));
+      ctx.beginPath(); ctx.arc(o.pr.sx,o.pr.sy,r,0,Math.PI*2);
+      ctx.fillStyle=g2; ctx.fill();
+      // Specular highlight
+      ctx.beginPath(); ctx.arc(o.pr.sx-r*.28,o.pr.sy-r*.28,r*.2,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,255,255,0.22)'; ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  });
+
+  // Label visible parts (only when no activePart or matching)
+  var labelParts = ['dendrites','soma','axon_hillock','myelin','ranvier','terminal'];
+  var labelPos = {
+    dendrites:{px:-2.1,py:0.9,pz:0.3},
+    soma:{px:0,py:0.9,pz:0},
+    axon_hillock:{px:0.85,py:0.5,pz:0},
+    myelin:{px:2.2,py:0.5,pz:0},
+    ranvier:{px:1.8,py:-0.45,pz:0},
+    terminal:{px:4.7,py:0.6,pz:0.2}
+  };
+  labelParts.forEach(function(pid){
+    if(activePart && activePart!==pid) return;
+    var lp = labelPos[pid];
+    if(!lp) return;
+    var pr = project({x:lp.px,y:lp.py,z:lp.pz});
+    var p = parts.find(function(p){return p.id===pid;});
+    if(!p) return;
+    ctx.globalAlpha = 0.92;
+    ctx.font = 'bold 11px Arial';
+    ctx.textAlign = 'center';
+    // Background pill
+    var txt = p.label;
+    var tw = ctx.measureText(txt).width;
+    ctx.fillStyle = 'rgba(8,14,26,0.75)';
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(pr.sx-tw/2-5,pr.sy-14,tw+10,18,4) :
+      ctx.rect(pr.sx-tw/2-5,pr.sy-14,tw+10,18);
+    ctx.fill();
+    ctx.fillStyle = (activePart===pid) ? '#7B1FA2' : '#ddd';
+    ctx.fillText(txt, pr.sx, pr.sy);
+    ctx.globalAlpha = 1;
+  });
+}
+
+// ---- Mouse/touch ----
+cv.addEventListener('mousedown',function(e){dragging=true;lastX=e.clientX;lastY=e.clientY;});
+cv.addEventListener('mousemove',function(e){
+  if(!dragging)return;
+  rotY+=(e.clientX-lastX)*.013; rotX+=(e.clientY-lastY)*.013;
+  lastX=e.clientX;lastY=e.clientY;
+});
+cv.addEventListener('mouseup',function(){dragging=false;});
+cv.addEventListener('mouseleave',function(){dragging=false;});
+cv.addEventListener('wheel',function(e){zoom=Math.max(.4,Math.min(2.5,zoom-e.deltaY*.001));},{passive:true});
+cv.addEventListener('touchstart',function(e){dragging=true;lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;},{passive:true});
+cv.addEventListener('touchmove',function(e){e.preventDefault();rotY+=(e.touches[0].clientX-lastX)*.013;rotX+=(e.touches[0].clientY-lastY)*.013;lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;},{passive:false});
+cv.addEventListener('touchend',function(){dragging=false;});
+
+// ---- Part tabs ----
+function buildTabs(){
+  var el = document.getElementById('ptabs');
+  parts.forEach(function(p){
+    var btn = document.createElement('button');
+    btn.className='ptab';
+    btn.textContent=p.label;
+    btn.style.borderColor=p.color;
+    btn.style.color=p.color;
+    btn.onclick=function(){selectPart(p.id, btn);};
+    el.appendChild(btn);
+  });
+}
+
+function selectPart(id, btn){
+  if(activePart===id){ activePart=null; document.querySelectorAll('.ptab').forEach(function(b){b.classList.remove('active');}); showDefault(); return; }
+  activePart=id;
+  document.querySelectorAll('.ptab').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  var info = partInfo[id];
+  if(!info) return;
+  var p = parts.find(function(p){return p.id===id;});
+  document.getElementById('rhead').textContent = info.name;
+  document.getElementById('rhead').style.background = p ? p.color : '#311B92';
+  document.getElementById('rhead').style.color = '#fff';
+  document.getElementById('partInfo').innerHTML =
+    '<div class="part-name" style="color:'+(p?p.color:'#311B92')+'">'+info.name+'</div>'+
+    '<div class="part-func">'+info.func+'</div>'+
+    '<div class="part-fact"><b>'+info.fact.title+'</b>'+info.fact.text+'</div>'+
+    '<div class="divider"></div>'+
+    '<div class="eth-box"><b>Ethiopian Context</b>'+info.eth+'</div>';
+}
+
+function showDefault(){
+  document.getElementById('rhead').textContent='Select a part to learn more';
+  document.getElementById('rhead').style.background='#311B92';
+  document.getElementById('rhead').style.color='#7B1FA2';
+  document.getElementById('partInfo').innerHTML=
+    '<p style="color:#999;font-size:.8rem;margin-top:8px;">Click any tab below the neuron to highlight that part and see its structure and function here.</p>'+
+    '<div class="divider"></div>'+
+    '<div class="eth-box"><b>Ethiopian Context</b>Ethiopian marathon runners have highly trained nervous systems - faster signal conduction, more efficient motor neuron recruitment, and superior proprioception developed through years of barefoot running on varied terrain.</div>'+
+    '<div class="divider"></div>'+
+    '<table class="ion-table"><tr><th>Ion</th><th>Inside</th><th>Outside</th><th>Role</th></tr>'+
+    '<tr><td>Na+</td><td>Low (15 mM)</td><td>High (145 mM)</td><td>Depolarisation</td></tr>'+
+    '<tr><td>K+</td><td>High (150 mM)</td><td>Low (5 mM)</td><td>Repolarisation</td></tr>'+
+    '<tr><td>Cl-</td><td>Low (10 mM)</td><td>High (120 mM)</td><td>Inhibition</td></tr>'+
+    '<tr><td>Ca2+</td><td>Very low</td><td>High (2.5 mM)</td><td>Vesicle fusion</td></tr>'+
+    '</table>';
+}
+
+// ---- Legend ----
+function buildLegend(){
+  var el = document.createElement('div');
+  el.className='legend';
+  parts.forEach(function(p){
+    el.innerHTML+='<div class="leg-item"><div class="leg-dot" style="background:'+p.color+'"></div><span>'+p.label+'</span></div>';
+  });
+  document.querySelector('.right').appendChild(el);
+}
+
+// ---- Canvas sizing ----
+function initCanvas(){
+  W = cv.offsetWidth || 700;
+  H = cv.offsetHeight || 460;
+  if(W<10) W=700;
+  cv.width = Math.round(W*dpr);
+  cv.height = Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  CX = W/2; CY = H/2;
+}
+
+window.addEventListener('resize',function(){initCanvas();});
+
+// ---- Loop ----
+function loop(){
+  if(!dragging) rotY += 0.004;
+  render();
+  requestAnimationFrame(loop);
+}
+
+// ---- Init ----
+buildTabs();
+buildLegend();
+showDefault();
+initCanvas();
+loop();
+</script>
+</body>
+</html>
