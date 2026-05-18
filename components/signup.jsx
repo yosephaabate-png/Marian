@@ -5,7 +5,7 @@ const SUBJECTS_ALL = ['Mathematics', 'Physics', 'Biology', 'Chemistry', 'English
 
 const STEPS = ['Personal Info', 'School & Grade', 'Subjects', 'Payment'];
 
-function Signup({ navigate }) {
+function Signup({ navigate, onGoogle, onComplete, setEnrolledGrade }) {
   const [step, setStep] = React.useState(0);
   const [form, setForm] = React.useState({
     firstName: '', lastName: '', email: '', phone: '',
@@ -64,10 +64,33 @@ function Signup({ navigate }) {
   return (
     <div style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: BRAND.text, padding: '32px 36px', maxWidth: 580, margin: '0 auto' }}>
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 28 }}>
+      <div style={{ textAlign: 'center', marginBottom: 22 }}>
         <h1 style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 28, margin: '0 0 6px', color: BRAND.dark }}>Create Your Account</h1>
         <p style={{ color: BRAND.muted, fontSize: 14, margin: 0 }}>Join thousands of Ethiopian students on MyMarian</p>
       </div>
+
+      {/* Quick Google signup */}
+      {step === 0 && (
+        <Card style={{ padding: '20px 22px', marginBottom: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 14, color: BRAND.dark, marginBottom: 2 }}>Fastest way to sign up</div>
+              <div style={{ fontSize: 12, color: BRAND.muted }}>One click — we'll pull your name and email from Google</div>
+            </div>
+            <span style={{
+              background: `${BRAND.gold}22`, color: BRAND.dark,
+              padding: '3px 9px', borderRadius: 99,
+              fontSize: 10, fontWeight: 800, letterSpacing: 0.6,
+            }}>RECOMMENDED</span>
+          </div>
+          <GoogleSignInButton onClick={() => onGoogle && onGoogle()} label="Sign up with Google" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0 0' }}>
+            <div style={{ flex: 1, height: 1, background: BRAND.border }} />
+            <span style={{ fontSize: 10, color: BRAND.muted, fontWeight: 700, letterSpacing: 1 }}>OR FILL THE FORM</span>
+            <div style={{ flex: 1, height: 1, background: BRAND.border }} />
+          </div>
+        </Card>
+      )}
 
       {/* Step indicators */}
       <div style={{ display: 'flex', gap: 0, marginBottom: 32, position: 'relative' }}>
@@ -155,7 +178,7 @@ function Signup({ navigate }) {
                 {[9,10,11,12].map(g => (
                   <button
                     key={g}
-                    onClick={() => set('grade', g)}
+                    onClick={() => { set('grade', g); setEnrolledGrade && setEnrolledGrade(g); }}
                     style={{
                       flex: 1, padding: '12px 8px', borderRadius: 8,
                       border: `2px solid ${form.grade === g ? BRAND.primary : BRAND.border}`,
@@ -251,7 +274,7 @@ function Signup({ navigate }) {
 
       <p style={{ textAlign: 'center', fontSize: 12, color: BRAND.muted, marginTop: 16, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
         <span>Already have an account?</span>
-        <button onClick={() => navigate('dashboard')} style={{ background: 'none', border: 'none', color: BRAND.primary, fontWeight: 700, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', padding: 0 }}>Sign in</button>
+        <button onClick={() => onGoogle && onGoogle()} style={{ background: 'none', border: 'none', color: BRAND.primary, fontWeight: 700, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', padding: 0 }}>Sign in with Google</button>
       </p>
     </div>
   );

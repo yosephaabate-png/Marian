@@ -23,7 +23,7 @@ const PLANS = [
     id: 'standard',
     name: 'መደበኛ',
     nameEn: 'Standard',
-    price: 299,
+    price: 1200,
     period: 'በወር',
     periodEn: 'per month',
     color: BRAND.primary,
@@ -37,13 +37,13 @@ const PLANS = [
       'Certificate issuance',
     ],
     missing: [],
-    cta: 'Subscribe — 299 ብር/mo',
+    cta: 'Subscribe — 1,200 ብር/mo',
   },
   {
     id: 'premium',
     name: 'ፕሪሚየም',
     nameEn: 'Premium',
-    price: 549,
+    price: 1700,
     period: 'በወር',
     periodEn: 'per month',
     color: BRAND.gold,
@@ -56,7 +56,7 @@ const PLANS = [
       'Certificate issuance',
     ],
     missing: [],
-    cta: 'Subscribe — 549 ብር/mo',
+    cta: 'Subscribe — 1,700 ብር/mo',
   },
 ];
 
@@ -91,6 +91,16 @@ const PAYMENT_METHODS = [
     steps: ['Open Amole app', 'Select "Bill Payment"', 'Search "MyMarian"', 'Enter amount and confirm'],
   },
   {
+    id: 'mpesa',
+    name: 'M-PESA',
+    nameAm: 'ኤም-ፔሳ',
+    desc: 'Safaricom Ethiopia · Mobile money',
+    icon: '📲',
+    color: '#08a14d',
+    ussd: '*733#',
+    steps: ['Dial *733# or open the M-PESA app', 'Select "Lipa na M-PESA" → "Pay Bill"', 'Enter Business Number: 600 728', 'Enter Account: MYMARIAN-<phone>', 'Enter amount and confirm with M-PESA PIN'],
+  },
+  {
     id: 'voucher',
     name: 'Voucher / Agent',
     nameAm: 'ቮቸር',
@@ -101,15 +111,21 @@ const PAYMENT_METHODS = [
   },
 ];
 
-function PaymentPage({ navigate }) {
+function PaymentPage({ navigate, onPaid }) {
   const [selectedPlan, setSelectedPlan] = React.useState('standard');
   const [selectedMethod, setSelectedMethod] = React.useState('telebirr');
+  const [billing, setBilling] = React.useState('monthly'); // 'monthly' | 'annual'
   const [showInstructions, setShowInstructions] = React.useState(false);
   const [voucherCode] = React.useState('MAR-' + Math.random().toString(36).slice(2, 8).toUpperCase());
   const [paid, setPaid] = React.useState(false);
 
   const plan = PLANS.find(p => p.id === selectedPlan);
   const method = PAYMENT_METHODS.find(m => m.id === selectedMethod);
+
+  // Apply 10% annual discount
+  const effectivePrice = billing === 'annual' ? Math.round(plan.price * 0.9) : plan.price;
+  const billedTotal = billing === 'annual' ? effectivePrice * 12 : effectivePrice;
+  const periodLabel = billing === 'annual' ? 'per month, billed annually' : 'per month';
 
   if (paid) {
     return (
@@ -123,7 +139,9 @@ function PaymentPage({ navigate }) {
         </p>
         <div style={{ background: BRAND.cream, borderRadius: 12, padding: '20px', marginBottom: 28 }}>
           <div style={{ fontSize: 12, color: BRAND.muted, marginBottom: 6 }}>PLAN ACTIVATED</div>
-          <div style={{ fontWeight: 700, fontSize: 18, color: BRAND.primary }}>{plan.nameEn} — {plan.price} ብር/mo</div>
+          <div style={{ fontWeight: 700, fontSize: 18, color: BRAND.primary }}>
+            {plan.nameEn} — {effectivePrice.toLocaleString()} ብር/mo {billing === 'annual' ? '(billed annually)' : ''}
+          </div>
           <div style={{ fontSize: 12, color: BRAND.muted, marginTop: 4 }}>via {method.name}</div>
         </div>
         <CTAButton variant="gold" onClick={() => navigate('dashboard')} style={{ fontSize: 16, padding: '14px 40px' }}>
@@ -136,9 +154,49 @@ function PaymentPage({ navigate }) {
   return (
     <div style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: BRAND.text, padding: '28px 36px', maxWidth: 780, margin: '0 auto' }}>
       {/* Header */}
-      <div style={{ marginBottom: 28, textAlign: 'center' }}>
+      <div style={{ marginBottom: 22, textAlign: 'center' }}>
         <h1 style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 26, margin: '0 0 6px', color: BRAND.dark }}>Choose Your Plan</h1>
         <p style={{ color: BRAND.muted, fontSize: 14, margin: 0 }}>All prices in Ethiopian Birr (ETB)</p>
+      </div>
+
+      {/* Billing toggle */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 22 }}>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          background: BRAND.cream, padding: 4, borderRadius: 99,
+          border: `1px solid ${BRAND.border}`,
+        }}>
+          {['monthly', 'annual'].map(mode => {
+            const active = billing === mode;
+            return (
+              <button
+                key={mode}
+                onClick={() => setBilling(mode)}
+                style={{
+                  padding: '7px 18px', borderRadius: 99,
+                  border: 'none',
+                  background: active ? BRAND.primary : 'transparent',
+                  color: active ? '#fff' : BRAND.muted,
+                  fontFamily: 'inherit', fontWeight: 700, fontSize: 12,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.22,1,0.36,1)',
+                  boxShadow: active ? `0 4px 14px ${BRAND.primary}44` : 'none',
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                }}
+              >
+                {mode === 'monthly' ? 'Monthly' : 'Annual'}
+                {mode === 'annual' && (
+                  <span style={{
+                    background: active ? BRAND.gold : `${BRAND.gold}33`,
+                    color: active ? BRAND.dark : BRAND.gold,
+                    padding: '1px 7px', borderRadius: 99,
+                    fontSize: 9, fontWeight: 800, letterSpacing: 0.4,
+                  }}>−10%</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Plan cards */}
@@ -171,8 +229,19 @@ function PaymentPage({ navigate }) {
                 ) : (
                   <>
                     <span style={{ fontSize: 11, color: BRAND.muted, verticalAlign: 'super' }}>ብር</span>
-                    <span style={{ fontSize: 32, fontWeight: 800, color: BRAND.dark, fontFamily: 'Playfair Display, Georgia, serif' }}>{p.price}</span>
-                    <span style={{ fontSize: 12, color: BRAND.muted }}> {p.periodEn}</span>
+                    <span style={{ fontSize: 32, fontWeight: 800, color: BRAND.dark, fontFamily: 'Playfair Display, Georgia, serif' }}>
+                      <AnimatedCounter key={billing + p.id} value={billing === 'annual' ? Math.round(p.price * 0.9) : p.price} duration={600} />
+                    </span>
+                    <span style={{ fontSize: 11, color: BRAND.muted }}> /mo</span>
+                    {billing === 'annual' && (
+                      <div style={{
+                        marginTop: 4, fontSize: 10, color: p.color, fontWeight: 700,
+                        display: 'inline-block', background: `${p.color}14`,
+                        padding: '2px 7px', borderRadius: 4, marginLeft: 0,
+                      }}>
+                        billed annually · save 10%
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -263,21 +332,26 @@ function PaymentPage({ navigate }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 15 }}>MyMarian {plan.nameEn}</div>
-                <div style={{ fontSize: 12, color: BRAND.muted, marginTop: 2 }}>Monthly subscription · Auto-renews</div>
+                <div style={{ fontSize: 12, color: BRAND.muted, marginTop: 2 }}>
+                  {billing === 'annual' ? 'Annual subscription · 12 months · 10% off' : 'Monthly subscription · Auto-renews'}
+                </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 22, fontWeight: 800, color: BRAND.dark }}>{plan.price} <span style={{ fontSize: 14 }}>ብር</span></div>
-                <div style={{ fontSize: 11, color: BRAND.muted }}>per month</div>
+                <div style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 22, fontWeight: 800, color: BRAND.dark }}>
+                  <AnimatedCounter key={billing + plan.id + 'sum'} value={billedTotal} duration={600} /> <span style={{ fontSize: 14 }}>ብር</span>
+                </div>
+                <div style={{ fontSize: 11, color: BRAND.muted }}>{billing === 'annual' ? `${effectivePrice.toLocaleString()} ብር × 12 mo` : 'per month'}</div>
               </div>
             </div>
           </Card>
 
           <CTAButton
             variant="gold"
-            onClick={() => setPaid(true)}
+            onClick={() => { setPaid(true); onPaid && onPaid(); }}
             style={{ width: '100%', fontSize: 16, padding: '15px 24px', textAlign: 'center' }}
+            className="mm-btn"
           >
-            Complete Payment — {plan.price} ብር via {method.name}
+            Complete Payment — {billedTotal.toLocaleString()} ብር via {method.name}
           </CTAButton>
 
           <p style={{ textAlign: 'center', fontSize: 11, color: BRAND.muted, marginTop: 12 }}>

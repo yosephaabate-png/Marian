@@ -4,12 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MyMarian — Ethiopian Student Learning Platform</title>
+  <link rel="icon" type="image/png" href="assets/mymarian-mark.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body, #root { height: 100%; }
@@ -18,13 +21,95 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; }
     input, select, textarea { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    /* ---- Alive animations ---- */
+    html { scroll-behavior: smooth; }
+
+    @keyframes mm-float {
+      0%, 100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(30px,-25px) scale(1.08); }
+      66% { transform: translate(-20px,20px) scale(0.95); }
+    }
+    @keyframes mm-float-slow {
+      0%, 100% { transform: translate(0,0) scale(1); opacity: 0.65; }
+      50% { transform: translate(-40px,30px) scale(1.15); opacity: 0.85; }
+    }
+    @keyframes mm-shine {
+      0% { transform: translateX(-110%) skewX(-18deg); }
+      100% { transform: translateX(220%) skewX(-18deg); }
+    }
+    @keyframes mm-pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.55; }
+    }
+    @keyframes mm-spin-slow { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+    @keyframes mm-pop-in {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes mm-gradient-pan {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .mm-reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.9s cubic-bezier(0.22,1,0.36,1), transform 0.9s cubic-bezier(0.22,1,0.36,1); }
+    .mm-reveal.is-in { opacity: 1; transform: translateY(0); }
+
+    .mm-card-lift { transition: transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.35s cubic-bezier(0.22,1,0.36,1), border-color 0.35s; will-change: transform; }
+    .mm-card-lift:hover { transform: translateY(-6px); box-shadow: 0 24px 60px rgba(13,92,58,0.18); }
+
+    .mm-shine-wrap { position: relative; overflow: hidden; }
+    .mm-shine-wrap::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%);
+      transform: translateX(-110%) skewX(-18deg);
+      pointer-events: none;
+    }
+    .mm-shine-wrap:hover::after { animation: mm-shine 0.95s ease forwards; }
+
+    .mm-btn { position: relative; overflow: hidden; transition: transform 0.18s ease, box-shadow 0.25s ease, background 0.25s ease; }
+    .mm-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.18); }
+    .mm-btn:active { transform: translateY(0); }
+
+    .mm-link { position: relative; }
+    .mm-link::after {
+      content: ''; position: absolute; left: 12px; right: 12px; bottom: 2px; height: 2px;
+      background: currentColor; transform: scaleX(0); transform-origin: right;
+      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+    }
+    .mm-link:hover::after { transform: scaleX(1); transform-origin: left; }
+
+    .mm-gradient-text {
+      background: linear-gradient(90deg, #D4AF37, #f5d76e, #D4AF37);
+      background-size: 200% 100%;
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; color: transparent;
+      animation: mm-gradient-pan 5s ease infinite;
+    }
+
+    .mm-tilt { transition: transform 0.5s cubic-bezier(0.22,1,0.36,1); }
+
+    /* Modal */
+    .mm-modal-backdrop {
+      position: fixed; inset: 0; background: rgba(7,31,20,0.62); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; z-index: 999;
+      animation: mm-pop-in 0.25s ease;
+    }
+    .mm-modal {
+      background: #fff; border-radius: 18px; max-width: 720px; width: calc(100% - 32px);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.45);
+      animation: mm-pop-in 0.45s cubic-bezier(0.22,1,0.36,1);
+      max-height: 90vh; overflow: auto;
+    }
   </style>
 </head>
-<body style="font-family: &quot;Times New Roman&quot;">
+<body>
 <div id="root"></div>
 
 <!-- Load components in order -->
 <script type="text/babel" src="components/shared.jsx"></script>
+<script type="text/babel" src="components/effects.jsx"></script>
 <script type="text/babel" src="components/landing.jsx"></script>
 <script type="text/babel" src="components/dashboard.jsx"></script>
 <script type="text/babel" src="components/player.jsx"></script>
@@ -62,17 +147,50 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
   const [tweaks, setTweaks] = useTweaks(TWEAK_DEFAULTS);
 
+  // Auth + demo state
+  const [authed, setAuthed] = React.useState(false);
+  const [demoPlan, setDemoPlan] = React.useState(null); // 'free' | 'standard' | 'premium' | null
+  const [showDemoModal, setShowDemoModal] = React.useState(false);
+  const isAuthedOrDemo = authed || !!demoPlan;
+  const PROTECTED = ['dashboard', 'player', 'tools', 'quiz', 'tutor'];
+
   // Apply tweak colors dynamically
   const primaryColor = tweaks.primaryColor;
   const accentColor = tweaks.accentColor;
 
-  const navigate = (target) => setPage(target);
+  const signInWithGoogle = () => {
+    setAuthed(true);
+    setDemoPlan(null);
+    setPage('dashboard');
+  };
+
+  const startDemo = (planId) => {
+    setDemoPlan(planId);
+    setShowDemoModal(false);
+    setPage('dashboard');
+  };
+
+  const navigate = (target) => {
+    if (target === 'dashboard' && !isAuthedOrDemo) {
+      // Trip sign-in gate by staying on 'dashboard' page; the gate intercepts.
+      setPage('dashboard');
+      return;
+    }
+    setPage(target);
+  };
+
+  const signOut = () => {
+    setAuthed(false);
+    setDemoPlan(null);
+    setPage('landing');
+  };
 
   // Landing page renders full-screen without app chrome
   if (page === 'landing') {
     return (
       <div style={{ height: '100vh', overflow: 'auto', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-        <LandingPage navigate={navigate} />
+        <LandingPage navigate={navigate} onDemo={() => setShowDemoModal(true)} onGoogle={signInWithGoogle} />
+        {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} onChoose={startDemo} />}
         <TweaksPanel tweaks={tweaks} setTweak={(k, v) => setTweaks(t => ({ ...t, [k]: v }))}>
           <TweakSection title="Navigation">
             <TweakRadio
@@ -84,6 +202,19 @@ function App() {
             />
           </TweakSection>
         </TweaksPanel>
+      </div>
+    );
+  }
+
+  // Protected pages — show sign-in gate if not authed or in demo
+  if (PROTECTED.includes(page) && !isAuthedOrDemo) {
+    return (
+      <div style={{ height: '100vh', overflow: 'auto', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+        <SignInGate
+          onGoogle={signInWithGoogle}
+          onSignup={() => setPage('signup')}
+        />
+        {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} onChoose={startDemo} />}
       </div>
     );
   }
@@ -112,26 +243,12 @@ function App() {
         }}>
           <EthiopianPattern opacity={0.07} color={BRAND.gold} />
           <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* Logo mark: Lalibela cross */}
-            <div style={{
-              width: 36, height: 36, borderRadius: 8,
-              background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.dark})`,
-              border: `1.5px solid ${BRAND.gold}55`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0,
-            }}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <rect x="8" y="2" width="4" height="16" fill={BRAND.gold} rx="0.5" opacity="0.9" />
-                <rect x="2" y="8" width="16" height="4" fill={BRAND.gold} rx="0.5" opacity="0.9" />
-                <rect x="6.5" y="6.5" width="3" height="3" fill={BRAND.gold} opacity="0.5" />
-                <rect x="10.5" y="6.5" width="3" height="3" fill={BRAND.gold} opacity="0.5" />
-                <rect x="6.5" y="10.5" width="3" height="3" fill={BRAND.gold} opacity="0.5" />
-                <rect x="10.5" y="10.5" width="3" height="3" fill={BRAND.gold} opacity="0.5" />
-              </svg>
-            </div>
+            <BrandMark size={36} glow />
             {sidebarOpen && (
               <div>
-                <div style={{ color: '#fff', fontFamily: 'Playfair Display, Georgia, serif', fontSize: 17, fontWeight: 700, lineHeight: 1.1 }}>MyMarian</div>
+                <div style={{ color: '#fff', fontFamily: 'Playfair Display, Georgia, serif', fontSize: 17, fontWeight: 700, lineHeight: 1.1 }}>
+                  <span style={{ color: '#fff' }}>My</span><span style={{ color: BRAND.gold }}>Marian</span>
+                </div>
                 <div style={{ color: `${BRAND.gold}99`, fontSize: 9.5, fontWeight: 600, letterSpacing: 1 }}>LEARNING PLATFORM</div>
               </div>
             )}
@@ -169,25 +286,18 @@ function App() {
           })}
         </nav>
 
-        {/* Grade indicator at bottom */}
+        {/* Grade indicator at bottom — locked to enrolled grade */}
         {sidebarOpen && (
           <div style={{ padding: '12px 14px', borderTop: '1px solid #ffffff18', flexShrink: 0 }}>
-            <div style={{ fontSize: 10, color: '#ffffff40', fontWeight: 600, letterSpacing: 0.5, marginBottom: 6 }}>CURRENT GRADE</div>
-            <div style={{ display: 'flex', gap: 4 }}>
-              {[9,10,11,12].map(g => (
-                <button
-                  key={g}
-                  onClick={() => setGrade(g)}
-                  style={{
-                    flex: 1, padding: '5px 0', borderRadius: 5,
-                    border: 'none',
-                    background: grade === g ? BRAND.gold : '#ffffff18',
-                    color: grade === g ? BRAND.dark : '#ffffff60',
-                    fontFamily: 'Plus Jakarta Sans, sans-serif',
-                    fontWeight: 700, fontSize: 11, cursor: 'pointer',
-                  }}
-                >{g}</button>
-              ))}
+            <div style={{ fontSize: 10, color: '#ffffff40', fontWeight: 600, letterSpacing: 0.5, marginBottom: 6 }}>ENROLLED GRADE</div>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              background: '#ffffff10',
+              border: `1px solid ${BRAND.gold}44`,
+              borderRadius: 8, padding: '8px 12px',
+            }}>
+              <span style={{ color: '#fff', fontWeight: 800, fontSize: 14, letterSpacing: 0.5 }}>Grade {grade}</span>
+              <span style={{ color: BRAND.gold, fontSize: 10, fontWeight: 700, letterSpacing: 0.5 }}>● LOCKED</span>
             </div>
           </div>
         )}
@@ -227,8 +337,37 @@ function App() {
             <span style={{ fontWeight: 700, fontSize: 14, color: BRAND.dark }}>
               {NAV_ITEMS.find(n => n.key === page)?.label}
             </span>
+            {demoPlan && (
+              <span style={{
+                marginLeft: 10,
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: `${BRAND.gold}22`,
+                border: `1px solid ${BRAND.gold}66`,
+                color: BRAND.dark,
+                padding: '3px 10px', borderRadius: 99,
+                fontSize: 10, fontWeight: 800, letterSpacing: 0.6,
+              }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: BRAND.gold, animation: 'mm-pulse-dot 1.6s ease infinite' }} />
+                DEMO · {demoPlan.toUpperCase()}
+              </span>
+            )}
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            {demoPlan && (
+              <select
+                value={demoPlan}
+                onChange={(e) => setDemoPlan(e.target.value)}
+                style={{
+                  padding: '5px 8px', fontSize: 11, fontWeight: 700,
+                  border: `1px solid ${BRAND.border}`, borderRadius: 6,
+                  background: '#fff', color: BRAND.dark, cursor: 'pointer',
+                }}
+              >
+                <option value="free">Demo: Free</option>
+                <option value="standard">Demo: Standard</option>
+                <option value="premium">Demo: Premium</option>
+              </select>
+            )}
             <span style={{ fontSize: 12, color: BRAND.muted }}>Grade {grade}</span>
             <div style={{
               width: 1, height: 18, background: BRAND.border,
@@ -237,19 +376,28 @@ function App() {
               <Avatar name="Selamawit Tadesse" size={28} bg={BRAND.primary} />
               <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.dark }}>Selamawit T.</span>
             </div>
+            <button
+              onClick={signOut}
+              title="Sign out"
+              style={{
+                background: 'none', border: `1px solid ${BRAND.border}`, color: BRAND.muted,
+                padding: '4px 10px', borderRadius: 6, fontFamily: 'inherit',
+                fontSize: 11, fontWeight: 600, cursor: 'pointer',
+              }}
+            >Sign out</button>
           </div>
         </header>
 
         {/* Page content */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          {page === 'landing'   && <LandingPage navigate={navigate} />}
-          {page === 'dashboard' && <Dashboard grade={grade} setGrade={setGrade} navigate={navigate} />}
+          {page === 'landing'   && <LandingPage navigate={navigate} onDemo={() => setShowDemoModal(true)} onGoogle={signInWithGoogle} />}
+          {page === 'dashboard' && <Dashboard grade={grade} setGrade={setGrade} navigate={navigate} demoPlan={demoPlan} />}
           {page === 'player'    && <CoursePlayer navigate={navigate} />}
           {page === 'tools'     && <InteractiveTools grade={grade} navigate={navigate} />}
           {page === 'quiz'      && <Quiz navigate={navigate} />}
           {page === 'tutor'     && <TutorSessions grade={grade} />}
-          {page === 'signup'    && <Signup navigate={navigate} />}
-          {page === 'payment'   && <PaymentPage navigate={navigate} />}
+          {page === 'signup'    && <Signup navigate={navigate} onGoogle={signInWithGoogle} setEnrolledGrade={setGrade} onComplete={() => { setAuthed(true); setPage('dashboard'); }} />}
+          {page === 'payment'   && <PaymentPage navigate={navigate} onPaid={() => { setAuthed(true); }} />}
         </div>
       </main>
 
@@ -274,6 +422,7 @@ function App() {
           />
         </TweakSection>
       </TweaksPanel>
+      {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} onChoose={startDemo} />}
     </div>
   );
 }
