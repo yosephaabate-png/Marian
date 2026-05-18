@@ -1108,15 +1108,28 @@ function LandingPage({ navigate, onDemo, onGoogle }) {
                     textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6,
                   }}
                 >Visit AfroLMS ↗</a>
-                <a
-                  href="mailto:Contact@mymarian.net"
+                <button
+                  onClick={() => navigate('integration')}
                   className="mm-btn"
                   style={{
                     background: '#ffffff14', color: '#fff',
                     border: '1.5px solid #ffffff33',
                     padding: '12px 22px', borderRadius: 8,
                     fontSize: 13, fontWeight: 700,
-                    textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6,
+                    cursor: 'pointer', fontFamily: 'inherit',
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                  }}
+                >View integration playbook →</button>
+                <a
+                  href="mailto:Contact@mymarian.net"
+                  className="mm-btn"
+                  style={{
+                    background: 'transparent', color: '#ffffffcc',
+                    border: '1.5px solid transparent',
+                    padding: '12px 18px', borderRadius: 8,
+                    fontSize: 13, fontWeight: 600,
+                    textDecoration: 'underline', textUnderlineOffset: 4,
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
                   }}
                 >Partner with us</a>
               </div>
