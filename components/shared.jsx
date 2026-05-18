@@ -194,6 +194,26 @@ const Card = ({ children, style = {}, hover = true }) => {
   );
 };
 
+// Brand mark — uses the official MyMarian logo PNG. Returns just the rounded-square icon.
+const BrandMark = ({ size = 36, style = {}, glow = false }) => (
+  <img
+    src="assets/mymarian-mark.png"
+    alt="MyMarian"
+    width={size}
+    height={size}
+    style={{
+      width: size,
+      height: size,
+      display: 'block',
+      borderRadius: size * 0.22,
+      objectFit: 'cover',
+      flexShrink: 0,
+      boxShadow: glow ? `0 6px 22px ${BRAND.gold}55, 0 0 0 1px ${BRAND.gold}33` : 'none',
+      ...style,
+    }}
+  />
+);
+
 // Sidebar nav item
 const NavItem = ({ icon, label, active, onClick }) => (
   <button
@@ -226,5 +246,5 @@ const NavItem = ({ icon, label, active, onClick }) => (
 Object.assign(window, {
   BRAND, EthiopianPattern, TiletPattern, PatternDivider,
   GradeBadge, SUBJECT_COLORS, ProgressBar, Avatar, Stars,
-  CTAButton, Card, NavItem,
+  CTAButton, Card, NavItem, BrandMark,
 });
