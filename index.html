@@ -116,6 +116,7 @@
 <script type="text/babel" src="components/tools.jsx"></script>
 <script type="text/babel" src="components/quiz.jsx"></script>
 <script type="text/babel" src="components/tutor.jsx"></script>
+<script type="text/babel" src="components/integration.jsx"></script>
 <script type="text/babel" src="components/signup.jsx"></script>
 <script type="text/babel" src="components/payment.jsx"></script>
 <script type="text/babel" src="tweaks-panel.jsx"></script>
@@ -202,6 +203,15 @@ function App() {
             />
           </TweakSection>
         </TweaksPanel>
+      </div>
+    );
+  }
+
+  // Integration playbook — also full-screen, public
+  if (page === 'integration') {
+    return (
+      <div style={{ height: '100vh', overflow: 'auto', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+        <IntegrationPage navigate={navigate} />
       </div>
     );
   }
