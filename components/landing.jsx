@@ -434,6 +434,8 @@ function InteractiveToolsShowcase({ navigate }) {
 }
 
 function LandingPage({ navigate, onDemo, onGoogle }) {
+  const isMobile = useIsMobile();
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [openFaq, setOpenFaq] = React.useState(0);
   const [billing, setBilling] = React.useState('monthly'); // 'monthly' | 'annual'
   const [contentModal, setContentModal] = React.useState(null);
@@ -535,37 +537,84 @@ function LandingPage({ navigate, onDemo, onGoogle }) {
         background: '#ffffffee',
         backdropFilter: 'blur(12px)',
         borderBottom: `1px solid ${BRAND.border}`,
-        padding: '14px 36px',
+        padding: isMobile ? '12px 16px' : '14px 36px',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        gap: 12,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <BrandMark size={36} glow />
-          <div>
-            <div style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 18, fontWeight: 700, lineHeight: 1 }}>
+        <button
+          onClick={() => navigate('landing')}
+          aria-label="MyMarian — home"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          <BrandMark size={isMobile ? 32 : 36} glow />
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: isMobile ? 16 : 18, fontWeight: 700, lineHeight: 1 }}>
               <span style={{ color: BRAND.dark }}>My</span><span style={{ color: BRAND.gold }}>Marian</span>
             </div>
             <div style={{ fontSize: 9, color: BRAND.muted, fontWeight: 600, letterSpacing: 1 }}>ETHIOPIA · ኢትዮጵያ</div>
           </div>
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <a href="#features" className="mm-link" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>Features</a>
-          <a href="#tools" className="mm-link" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>Tools</a>
-          <a href="#subjects" className="mm-link" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>Subjects</a>
-          <a href="#pricing" className="mm-link" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>Pricing</a>
-          <a href="#lms" className="mm-link" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>AfroLMS</a>
-          <a href="#faq" className="mm-link" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>FAQ</a>
-          <button onClick={onGoogle} style={{ background: 'none', border: 'none', color: BRAND.primary, fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', padding: '6px 12px' }}>
-            Sign in
-          </button>
-          <CTAButton small variant="primary" onClick={() => navigate('signup')}>Get Started</CTAButton>
-        </div>
+        </button>
+        {!isMobile && (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <a href="#features" className="mm-link" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>Features</a>
+            <a href="#tools" className="mm-link" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>Tools</a>
+            <a href="#subjects" className="mm-link" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>Subjects</a>
+            <a href="#pricing" className="mm-link" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>Pricing</a>
+            <a href="#lms" className="mm-link" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>AfroLMS</a>
+            <a href="#faq" className="mm-link" style={{ color: BRAND.muted, fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>FAQ</a>
+            <button onClick={onGoogle} style={{ background: 'none', border: 'none', color: BRAND.primary, fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', padding: '6px 12px' }}>
+              Sign in
+            </button>
+            <CTAButton small variant="primary" onClick={() => navigate('signup')}>Get Started</CTAButton>
+          </div>
+        )}
+        {isMobile && (
+          <button
+            onClick={() => setMobileMenuOpen(o => !o)}
+            aria-label="Toggle menu"
+            style={{
+              background: 'none', border: `1px solid ${BRAND.border}`,
+              borderRadius: 8, padding: '8px 12px', cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: 18, lineHeight: 1, color: BRAND.dark,
+            }}
+          >{mobileMenuOpen ? '✕' : '☰'}</button>
+        )}
+        {isMobile && mobileMenuOpen && (
+          <div style={{
+            position: 'absolute', top: '100%', left: 0, right: 0,
+            background: '#fff', borderBottom: `1px solid ${BRAND.border}`,
+            padding: 16, display: 'flex', flexDirection: 'column', gap: 4,
+            boxShadow: '0 16px 40px rgba(0,0,0,0.08)',
+          }}>
+            {[
+              ['#features', 'Features'],
+              ['#tools', 'Tools'],
+              ['#subjects', 'Subjects'],
+              ['#pricing', 'Pricing'],
+              ['#lms', 'AfroLMS'],
+              ['#faq', 'FAQ'],
+            ].map(([href, label]) => (
+              <a key={href} href={href} onClick={() => setMobileMenuOpen(false)} style={{ color: BRAND.dark, fontSize: 15, fontWeight: 600, textDecoration: 'none', padding: '12px 8px', borderRadius: 6 }}>{label}</a>
+            ))}
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <button onClick={() => { setMobileMenuOpen(false); onGoogle(); }} style={{ flex: 1, background: 'transparent', border: `1px solid ${BRAND.border}`, color: BRAND.primary, fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', padding: '12px 16px', borderRadius: 8 }}>
+                Sign in
+              </button>
+              <CTAButton small variant="primary" onClick={() => { setMobileMenuOpen(false); navigate('signup'); }} style={{ flex: 1 }}>Get Started</CTAButton>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* HERO */}
       <section style={{
         background: `linear-gradient(135deg, ${BRAND.dark} 0%, ${BRAND.night} 60%, #04140c 100%)`,
         color: '#fff',
-        padding: '64px 36px 80px',
+        padding: isMobile ? '40px 18px 56px' : '64px 36px 80px',
         position: 'relative',
         overflow: 'hidden',
       }}>
@@ -574,7 +623,7 @@ function LandingPage({ navigate, onDemo, onGoogle }) {
         <FloatingGradient color={BRAND.gold} top="-12%" right="-6%" size={500} opacity={0.22} speed={16} blur={90} />
         <FloatingGradient color={BRAND.primary} bottom="-18%" left="-8%" size={520} opacity={0.32} speed={20} blur={100} />
         <FloatingGradient color="#5fc99c" top="35%" left="42%" size={260} opacity={0.18} speed={12} blur={70} />
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 48, alignItems: 'center' }}>
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.1fr 1fr', gap: isMobile ? 28 : 48, alignItems: 'center' }}>
           {/* Left copy */}
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: `${BRAND.gold}18`, border: `1px solid ${BRAND.gold}44`, padding: '6px 14px', borderRadius: 99, marginBottom: 20, animation: 'mm-pop-in 0.6s ease' }}>
@@ -583,7 +632,7 @@ function LandingPage({ navigate, onDemo, onGoogle }) {
             </div>
             <h1 style={{
               fontFamily: 'Playfair Display, Georgia, serif',
-              fontSize: 52, fontWeight: 700, lineHeight: 1.05, margin: '0 0 18px',
+              fontSize: isMobile ? 34 : 52, fontWeight: 700, lineHeight: 1.05, margin: '0 0 18px',
               letterSpacing: -0.5,
               animation: 'mm-pop-in 0.7s cubic-bezier(0.22,1,0.36,1)',
             }}>
@@ -1206,12 +1255,20 @@ function LandingPage({ navigate, onDemo, onGoogle }) {
       <footer style={{ background: BRAND.night, color: '#ffffff80', padding: '48px 36px 24px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr', gap: 32, marginBottom: 32 }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <button
+              onClick={() => { navigate('landing'); if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              aria-label="MyMarian — home"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12,
+                background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
               <BrandMark size={32} />
               <div style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 17, fontWeight: 700 }}>
                 <span style={{ color: '#fff' }}>My</span><span style={{ color: BRAND.gold }}>Marian</span>
               </div>
-            </div>
+            </button>
             <p style={{ fontSize: 12, lineHeight: 1.6, margin: '0 0 18px', maxWidth: 280 }}>
               Ethiopia's leading learning platform for Grades 9–12. Aligned with the Ethiopian Ministry of Education curriculum. Powered by AfroLMS.
             </p>

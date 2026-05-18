@@ -242,9 +242,22 @@ const NavItem = ({ icon, label, active, onClick }) => (
   </button>
 );
 
+// Reactive viewport hook for responsive layouts
+const useIsMobile = (breakpoint = 768) => {
+  const [isMobile, setIsMobile] = React.useState(
+    typeof window !== 'undefined' ? window.innerWidth <= breakpoint : false
+  );
+  React.useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= breakpoint);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [breakpoint]);
+  return isMobile;
+};
+
 // Export everything
 Object.assign(window, {
   BRAND, EthiopianPattern, TiletPattern, PatternDivider,
   GradeBadge, SUBJECT_COLORS, ProgressBar, Avatar, Stars,
-  CTAButton, Card, NavItem, BrandMark,
+  CTAButton, Card, NavItem, BrandMark, useIsMobile,
 });
