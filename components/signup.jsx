@@ -307,14 +307,14 @@ function Signup({ navigate, onGoogle, onComplete, setEnrolledGrade }) {
           </div>
         )}
 
-        {/* Step 3: Payment — goes to PaymentPage component */}
+        {/* Step 3: Payment — only reached for paid plans */}
         {step === 3 && (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
             <h3 style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 22, margin: '0 0 8px' }}>Almost there!</h3>
-            <p style={{ color: BRAND.muted, fontSize: 14, margin: '0 0 24px' }}>Your profile is ready. Choose a subscription plan to complete registration.</p>
+            <p style={{ color: BRAND.muted, fontSize: 14, margin: '0 0 24px' }}>Your profile is ready. Complete payment to activate your {form.plan} plan.</p>
             <CTAButton variant="gold" onClick={() => navigate('payment')} style={{ fontSize: 16, padding: '14px 32px' }}>
-              Choose a Plan & Pay
+              Continue to Payment
             </CTAButton>
           </div>
         )}
@@ -325,8 +325,14 @@ function Signup({ navigate, onGoogle, onComplete, setEnrolledGrade }) {
             {step > 0
               ? <CTAButton variant="ghost" onClick={back}>← Back</CTAButton>
               : <div />}
-            <CTAButton variant="primary" onClick={next}>
-              {step === 2 ? 'Finish Profile →' : 'Continue →'}
+            <CTAButton variant="primary" onClick={() => {
+              if (step === 2 && form.plan === 'free') {
+                if (validate()) onComplete && onComplete('free');
+              } else {
+                next();
+              }
+            }}>
+              {step === 2 ? (form.plan === 'free' ? 'Start Learning →' : 'Finish Profile →') : 'Continue →'}
             </CTAButton>
           </div>
         )}
