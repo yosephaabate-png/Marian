@@ -283,7 +283,7 @@ function PaymentPage({ navigate, onPaid }) {
         setVerifying(false);
         setPaid(true);
         setStep('done');
-        onPaid && onPaid();
+        onPaid && onPaid(selectedPlan);
       }, 1100);
     };
 
@@ -390,7 +390,7 @@ function PaymentPage({ navigate, onPaid }) {
           </div>
           <div style={{ fontSize: 12, color: BRAND.muted, marginTop: 4 }}>via {method.name}</div>
         </div>
-        <CTAButton variant="gold" onClick={() => navigate('dashboard')} style={{ fontSize: 16, padding: '14px 40px' }}>
+        <CTAButton variant="gold" onClick={() => { onPaid && onPaid(selectedPlan); navigate('dashboard'); }} style={{ fontSize: 16, padding: '14px 40px' }}>
           Go to Dashboard
         </CTAButton>
       </div>
@@ -608,7 +608,7 @@ function PaymentPage({ navigate, onPaid }) {
 
       {selectedPlan === 'free' && (
         <div style={{ textAlign: 'center' }}>
-          <CTAButton variant="primary" onClick={() => navigate('dashboard')} style={{ fontSize: 16, padding: '14px 40px' }}>
+          <CTAButton variant="primary" onClick={() => { onPaid && onPaid('free'); navigate('dashboard'); }} style={{ fontSize: 16, padding: '14px 40px' }}>
             Start with Free Plan
           </CTAButton>
           <p style={{ fontSize: 12, color: BRAND.muted, marginTop: 10 }}>Upgrade anytime from your profile settings</p>

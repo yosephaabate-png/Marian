@@ -191,9 +191,11 @@ function App() {
 
   // Auth + demo state
   const [authed, setAuthed] = React.useState(false);
+  const [userPlan, setUserPlan] = React.useState(null); // plan chosen during signup
   const [demoPlan, setDemoPlan] = React.useState(null); // 'free' | 'standard' | 'premium' | null
   const [showDemoModal, setShowDemoModal] = React.useState(false);
   const isAuthedOrDemo = authed || !!demoPlan;
+  const activePlan = demoPlan || userPlan; // effective plan for the current session
   const PROTECTED = ['dashboard', 'player', 'tools', 'quiz', 'tutor'];
 
   // Apply tweak colors dynamically
@@ -471,13 +473,13 @@ function App() {
         {/* Page content */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           {page === 'landing'   && <LandingPage navigate={navigate} onDemo={() => setShowDemoModal(true)} onGoogle={signInWithGoogle} />}
-          {page === 'dashboard' && <Dashboard grade={grade} setGrade={setGrade} navigate={navigate} demoPlan={demoPlan} />}
+          {page === 'dashboard' && <Dashboard grade={grade} setGrade={setGrade} navigate={navigate} demoPlan={activePlan} />}
           {page === 'player'    && <CoursePlayer navigate={navigate} />}
           {page === 'tools'     && <InteractiveTools grade={grade} navigate={navigate} />}
           {page === 'quiz'      && <Quiz navigate={navigate} />}
           {page === 'tutor'     && <TutorSessions grade={grade} />}
-          {page === 'signup'    && <Signup navigate={navigate} onGoogle={signInWithGoogle} setEnrolledGrade={setGrade} onComplete={() => { setAuthed(true); setPage('dashboard'); }} />}
-          {page === 'payment'   && <PaymentPage navigate={navigate} onPaid={() => { setAuthed(true); }} />}
+          {page === 'signup'    && <Signup navigate={navigate} onGoogle={signInWithGoogle} setEnrolledGrade={setGrade} onComplete={(plan) => { setAuthed(true); setUserPlan(plan || 'free'); setPage('dashboard'); }} />}
+          {page === 'payment'   && <PaymentPage navigate={navigate} onPaid={(plan) => { setAuthed(true); setUserPlan(plan || 'free'); }} />}
         </div>
       </main>
 
