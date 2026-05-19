@@ -119,11 +119,13 @@ function PaymentPage({ navigate, onPaid }) {
   const [voucherCode] = React.useState('MAR-' + Math.random().toString(36).slice(2, 8).toUpperCase());
   const [paid, setPaid] = React.useState(false);
 
-  // Checkout flow: 'select' → 'verify' → 'done'
+  // Checkout flow: 'select' → 'verify' (phone) → 'reference' (txn ref) → 'done'
   const [step, setStep] = React.useState('select');
   const [phone, setPhone] = React.useState('');
   const [txnRef, setTxnRef] = React.useState('');
   const [phoneError, setPhoneError] = React.useState('');
+  const [refError, setRefError] = React.useState('');
+  const [sending, setSending] = React.useState(false);
   const [verifying, setVerifying] = React.useState(false);
 
   const plan = PLANS.find(p => p.id === selectedPlan);
@@ -142,26 +144,38 @@ function PaymentPage({ navigate, onPaid }) {
   const billedTotal = billing === 'annual' ? effectivePrice * 12 : effectivePrice;
   const periodLabel = billing === 'annual' ? 'per month, billed annually' : 'per month';
 
-  // Step 2 — Enter phone / verify payment
-  if (step === 'verify' && !paid) {
-    const requiresPhone = method.id !== 'voucher';
-    const phoneValid = !requiresPhone || isValidEthiopianMobile(phone);
-    const refValid = method.id === 'voucher' ? true : txnRef.trim().length >= 4;
-    const canSubmit = phoneValid && refValid && !verifying;
+  const requiresPhone = method.id !== 'voucher';
 
-    const handleVerify = () => {
+  // Selected summary card — shared between verify + reference screens
+  const summaryCard = (
+    <Card style={{ padding: '14px 18px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ fontSize: 24, width: 36, textAlign: 'center', flexShrink: 0 }}>{method.icon}</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 700, fontSize: 14 }}>{plan.nameEn} · {method.name}</div>
+        <div style={{ fontSize: 11, color: BRAND.muted }}>{billing === 'annual' ? `${effectivePrice.toLocaleString()} ብር × 12` : `${effectivePrice.toLocaleString()} ብር / mo`}</div>
+      </div>
+      <div style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 18, fontWeight: 800, color: BRAND.dark }}>
+        {billedTotal.toLocaleString()} <span style={{ fontSize: 12 }}>ብር</span>
+      </div>
+    </Card>
+  );
+
+  // Step 2 — Enter phone (or voucher holder) and send the payment request
+  if (step === 'verify' && !paid) {
+    const phoneValid = !requiresPhone || isValidEthiopianMobile(phone);
+    const canSend = phoneValid && !sending;
+
+    const handleSend = () => {
       if (!phoneValid) {
         setPhoneError('Enter a valid Ethiopian mobile number (e.g. 0912 345 678)');
         return;
       }
       setPhoneError('');
-      setVerifying(true);
-      // Simulate a verification round-trip
+      setSending(true);
+      // Simulate dispatching a payment request to TeleBirr/M-PESA/etc.
       setTimeout(() => {
-        setVerifying(false);
-        setPaid(true);
-        setStep('done');
-        onPaid && onPaid();
+        setSending(false);
+        setStep('reference');
       }, 1100);
     };
 
@@ -176,69 +190,140 @@ function PaymentPage({ navigate, onPaid }) {
         >← Back to plan</button>
 
         <div style={{ marginBottom: 22 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: BRAND.gold, letterSpacing: 1 }}>STEP 1 OF 2</span>
+            <span style={{ flex: 1, height: 3, background: BRAND.border, borderRadius: 2, overflow: 'hidden' }}>
+              <span style={{ display: 'block', width: '50%', height: '100%', background: BRAND.primary }} />
+            </span>
+          </div>
           <h1 style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 24, margin: '0 0 6px', color: BRAND.dark }}>
-            {requiresPhone ? 'Confirm your payment' : 'Confirm your voucher'}
+            {requiresPhone ? 'Send the payment request' : 'Confirm your voucher purchase'}
           </h1>
           <p style={{ color: BRAND.muted, fontSize: 13, margin: 0 }}>
             {requiresPhone
-              ? `Enter the mobile number you used on ${method.name}. We'll match it to your transaction.`
-              : `Enter your voucher code and the agent reference to activate ${plan.nameEn}.`}
+              ? `Enter the mobile number registered with ${method.name}. We'll push a payment request to it — approve it on your phone, then come back to enter the transaction reference.`
+              : `Enter the number used to buy the voucher so we can match it to your purchase record.`}
           </p>
         </div>
 
-        {/* Selected summary */}
-        <Card style={{ padding: '14px 18px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ fontSize: 24, width: 36, textAlign: 'center', flexShrink: 0 }}>{method.icon}</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>{plan.nameEn} · {method.name}</div>
-            <div style={{ fontSize: 11, color: BRAND.muted }}>{billing === 'annual' ? `${effectivePrice.toLocaleString()} ብር × 12` : `${effectivePrice.toLocaleString()} ብር / mo`}</div>
-          </div>
-          <div style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 18, fontWeight: 800, color: BRAND.dark }}>
-            {billedTotal.toLocaleString()} <span style={{ fontSize: 12 }}>ብር</span>
-          </div>
-        </Card>
+        {summaryCard}
 
-        {requiresPhone && (
-          <div style={{ marginBottom: 16 }}>
-            <label htmlFor="pay-phone" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: BRAND.dark, marginBottom: 6, letterSpacing: 0.3 }}>
-              MOBILE NUMBER
-            </label>
+        <div style={{ marginBottom: 18 }}>
+          <label htmlFor="pay-phone" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: BRAND.dark, marginBottom: 6, letterSpacing: 0.3 }}>
+            MOBILE NUMBER
+          </label>
+          <div style={{
+            display: 'flex', alignItems: 'stretch',
+            border: `2px solid ${phoneError ? '#d94e4e' : BRAND.border}`,
+            borderRadius: 10, overflow: 'hidden', background: '#fff',
+            transition: 'border-color 0.2s',
+          }}>
             <div style={{
-              display: 'flex', alignItems: 'stretch',
-              border: `2px solid ${phoneError ? '#d94e4e' : BRAND.border}`,
-              borderRadius: 10, overflow: 'hidden', background: '#fff',
-              transition: 'border-color 0.2s',
-            }}>
-              <div style={{
-                background: BRAND.cream, padding: '0 14px',
-                display: 'flex', alignItems: 'center',
-                fontSize: 14, fontWeight: 700, color: BRAND.dark,
-                borderRight: `1px solid ${BRAND.border}`,
-              }}>🇪🇹 +251</div>
-              <input
-                id="pay-phone"
-                type="tel"
-                inputMode="numeric"
-                autoComplete="tel-national"
-                placeholder="912 345 678"
-                value={phone}
-                onChange={e => { setPhone(e.target.value); if (phoneError) setPhoneError(''); }}
-                style={{
-                  flex: 1, border: 'none', outline: 'none',
-                  padding: '12px 14px', fontSize: 15, color: BRAND.dark,
-                  background: 'transparent', fontFamily: 'inherit',
-                }}
-              />
-            </div>
-            {phoneError ? (
-              <div style={{ fontSize: 12, color: '#d94e4e', marginTop: 6, fontWeight: 600 }}>{phoneError}</div>
-            ) : (
-              <div style={{ fontSize: 11, color: BRAND.muted, marginTop: 6 }}>
-                Must match the {method.name} account that paid. We never store this number on third-party servers.
-              </div>
-            )}
+              background: BRAND.cream, padding: '0 14px',
+              display: 'flex', alignItems: 'center',
+              fontSize: 14, fontWeight: 700, color: BRAND.dark,
+              borderRight: `1px solid ${BRAND.border}`,
+            }}>🇪🇹 +251</div>
+            <input
+              id="pay-phone"
+              type="tel"
+              inputMode="numeric"
+              autoComplete="tel-national"
+              placeholder="912 345 678"
+              value={phone}
+              onChange={e => { setPhone(e.target.value); if (phoneError) setPhoneError(''); }}
+              style={{
+                flex: 1, border: 'none', outline: 'none',
+                padding: '12px 14px', fontSize: 15, color: BRAND.dark,
+                background: 'transparent', fontFamily: 'inherit',
+              }}
+            />
           </div>
-        )}
+          {phoneError ? (
+            <div style={{ fontSize: 12, color: '#d94e4e', marginTop: 6, fontWeight: 600 }}>{phoneError}</div>
+          ) : (
+            <div style={{ fontSize: 11, color: BRAND.muted, marginTop: 6 }}>
+              Must match the {method.name} account that will pay. We never store this number on third-party servers.
+            </div>
+          )}
+        </div>
+
+        <CTAButton
+          variant="gold"
+          onClick={canSend ? handleSend : undefined}
+          style={{
+            width: '100%', fontSize: 16, padding: '15px 24px', textAlign: 'center',
+            opacity: canSend ? 1 : 0.55, cursor: canSend ? 'pointer' : 'not-allowed',
+          }}
+          className="mm-btn"
+        >
+          {sending ? 'Sending payment request…' : `Send payment request via ${method.name} →`}
+        </CTAButton>
+
+        <p style={{ textAlign: 'center', fontSize: 11, color: BRAND.muted, marginTop: 12 }}>
+          You'll receive a {method.ussd ? `${method.ussd} prompt` : 'push notification'} on {formattedPhone || 'your phone'}. Approve it to receive a transaction reference.
+        </p>
+      </div>
+    );
+  }
+
+  // Step 3 — Enter the transaction reference returned by the payment provider
+  if (step === 'reference' && !paid) {
+    const refValid = txnRef.trim().length >= 6;
+    const canSubmit = refValid && !verifying;
+
+    const handleConfirm = () => {
+      if (!refValid) {
+        setRefError('Reference must be at least 6 characters. Check the confirmation SMS.');
+        return;
+      }
+      setRefError('');
+      setVerifying(true);
+      setTimeout(() => {
+        setVerifying(false);
+        setPaid(true);
+        setStep('done');
+        onPaid && onPaid();
+      }, 1100);
+    };
+
+    return (
+      <div style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: BRAND.text, padding: '28px 36px', maxWidth: 560, margin: '0 auto' }}>
+        <button
+          onClick={() => { setStep('verify'); setRefError(''); }}
+          style={{
+            background: 'none', border: 'none', color: BRAND.muted, fontFamily: 'inherit',
+            fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: 0, marginBottom: 14,
+          }}
+        >← Back · change phone</button>
+
+        <div style={{ marginBottom: 22 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: BRAND.gold, letterSpacing: 1 }}>STEP 2 OF 2</span>
+            <span style={{ flex: 1, height: 3, background: BRAND.border, borderRadius: 2, overflow: 'hidden' }}>
+              <span style={{ display: 'block', width: '100%', height: '100%', background: BRAND.primary }} />
+            </span>
+          </div>
+          <h1 style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 24, margin: '0 0 6px', color: BRAND.dark }}>
+            Enter the transaction reference
+          </h1>
+          <p style={{ color: BRAND.muted, fontSize: 13, margin: 0 }}>
+            Payment request sent to <strong style={{ color: BRAND.dark }}>{formattedPhone || 'your phone'}</strong>. Once you approve it, {method.name} sends you a confirmation SMS containing a reference — paste it below.
+          </p>
+        </div>
+
+        {summaryCard}
+
+        <div style={{
+          background: `${BRAND.primary}10`, border: `1px solid ${BRAND.primary}33`,
+          borderRadius: 10, padding: '12px 14px', marginBottom: 16,
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: BRAND.primary, animation: 'mm-pulse-dot 1.6s ease infinite', flexShrink: 0 }} />
+          <div style={{ fontSize: 12, color: BRAND.dark, fontWeight: 600 }}>
+            Payment request sent. Awaiting your transaction reference…
+          </div>
+        </div>
 
         <div style={{ marginBottom: 18 }}>
           <label htmlFor="pay-ref" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: BRAND.dark, marginBottom: 6, letterSpacing: 0.3 }}>
@@ -249,24 +334,29 @@ function PaymentPage({ navigate, onPaid }) {
             type="text"
             placeholder={method.id === 'voucher' ? voucherCode : 'e.g. AB12CD34EF'}
             value={txnRef}
-            onChange={e => setTxnRef(e.target.value.toUpperCase())}
+            onChange={e => { setTxnRef(e.target.value.toUpperCase()); if (refError) setRefError(''); }}
+            autoFocus
             style={{
-              width: '100%', border: `2px solid ${BRAND.border}`,
-              borderRadius: 10, padding: '12px 14px', fontSize: 15,
+              width: '100%', border: `2px solid ${refError ? '#d94e4e' : BRAND.border}`,
+              borderRadius: 10, padding: '12px 14px', fontSize: 16,
               color: BRAND.dark, fontFamily: 'inherit', background: '#fff',
-              letterSpacing: 1,
+              letterSpacing: 2, fontWeight: 600,
             }}
           />
-          <div style={{ fontSize: 11, color: BRAND.muted, marginTop: 6 }}>
-            {method.id === 'voucher'
-              ? 'Provided by the agent after you paid in cash.'
-              : `Find the reference in the ${method.name} confirmation SMS.`}
-          </div>
+          {refError ? (
+            <div style={{ fontSize: 12, color: '#d94e4e', marginTop: 6, fontWeight: 600 }}>{refError}</div>
+          ) : (
+            <div style={{ fontSize: 11, color: BRAND.muted, marginTop: 6 }}>
+              {method.id === 'voucher'
+                ? 'The code printed on your voucher receipt.'
+                : `Look for "Ref" or "Txn ID" in the SMS from ${method.name}.`}
+            </div>
+          )}
         </div>
 
         <CTAButton
           variant="gold"
-          onClick={canSubmit ? handleVerify : undefined}
+          onClick={canSubmit ? handleConfirm : undefined}
           style={{
             width: '100%', fontSize: 16, padding: '15px 24px', textAlign: 'center',
             opacity: canSubmit ? 1 : 0.55, cursor: canSubmit ? 'pointer' : 'not-allowed',
@@ -277,7 +367,7 @@ function PaymentPage({ navigate, onPaid }) {
         </CTAButton>
 
         <p style={{ textAlign: 'center', fontSize: 11, color: BRAND.muted, marginTop: 12 }}>
-          We'll send a confirmation SMS to {formattedPhone || 'your number'} once your payment clears.
+          Didn't receive a reference yet? <button onClick={() => { setStep('verify'); }} style={{ background: 'none', border: 'none', color: BRAND.primary, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, padding: 0, textDecoration: 'underline' }}>Resend payment request</button>
         </p>
       </div>
     );
