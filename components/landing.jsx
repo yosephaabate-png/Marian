@@ -1319,13 +1319,13 @@ function LandingPage({ navigate, onDemo, onGoogle }) {
                   key={label}
                   onClick={() => setContentModal(label)}
                   style={{
-                    background: 'none', border: 'none', color: 'inherit',
+                    background: 'none', border: 'none', color: '#fff',
                     padding: 0, textAlign: 'left', cursor: 'pointer',
                     fontFamily: 'inherit', fontSize: 12,
                     transition: 'color 0.2s',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.color = BRAND.gold; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = ''; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#fff'; }}
                 >{label}</button>
               ))}
             </div>
@@ -1338,13 +1338,13 @@ function LandingPage({ navigate, onDemo, onGoogle }) {
                   key={label}
                   onClick={() => setContentModal(label)}
                   style={{
-                    background: 'none', border: 'none', color: 'inherit',
+                    background: 'none', border: 'none', color: '#fff',
                     padding: 0, textAlign: 'left', cursor: 'pointer',
                     fontFamily: 'inherit', fontSize: 12,
                     transition: 'color 0.2s',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.color = BRAND.gold; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = ''; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#fff'; }}
                 >{label}</button>
               ))}
             </div>
