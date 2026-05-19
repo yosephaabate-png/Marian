@@ -81,7 +81,7 @@ const TESTIMONIALS = [
 const FAQ = [
   {
     q: 'How much does MyMarian cost?',
-    a: 'We offer three plans: Free (3 subjects, basic features), Standard at 1,200 ብር/month (all subjects, live tutorial sessions, certificates), and Premium at 1,700 ብር/month (everything plus 1-on-1 tutor booking and exam prep boot-camps). Save 10% on both paid plans when you bill annually.',
+    a: 'We offer three plans: Free (English & Biology, basic features), Standard at 1,200 ብር/month (all subjects, live tutorial sessions, certificates), and Premium at 1,700 ብር/month (everything plus 1-on-1 tutor booking and exam prep boot-camps). Save 10% on both paid plans when you bill annually.',
   },
   {
     q: 'Can I pay with TeleBirr?',
@@ -887,7 +887,7 @@ function LandingPage({ navigate, onDemo, onGoogle }) {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
             {[
-              { name: 'Free', nameAm: 'ነጻ', basePrice: 0, popular: false, color: BRAND.muted, features: ['3 subjects', 'Video lessons', 'Interactive tools'] },
+              { name: 'Free', nameAm: 'ነጻ', basePrice: 0, popular: false, color: BRAND.muted, features: ['English & Biology', 'Video lessons', 'Interactive tools'] },
               { name: 'Standard', nameAm: 'መደበኛ', basePrice: 1200, popular: true, color: BRAND.primary, features: ['All 8 subjects', 'Live tutorial sessions', 'Quizzes & assessments', 'Recordings library', 'Certificates'] },
               { name: 'Premium', nameAm: 'ፕሪሚየም', basePrice: 1700, popular: false, color: BRAND.gold, features: ['Everything in Standard', '1-on-1 tutor booking', 'Priority support', 'Exam prep boot-camps'] },
             ].map((p, idx) => {

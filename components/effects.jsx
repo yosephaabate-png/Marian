@@ -182,8 +182,8 @@ function DemoModal({ onClose, onChoose }) {
     {
       id: 'free', name: 'Free', nameAm: 'ነጻ', price: 0,
       color: BRAND.muted, accent: '#f3f4f6',
-      tagline: '3 subjects, basics only',
-      perks: ['3 subjects', 'Video lessons', 'Interactive tools'],
+      tagline: 'English & Biology, basics only',
+      perks: ['English & Biology', 'Video lessons', 'Interactive tools'],
     },
     {
       id: 'standard', name: 'Standard', nameAm: 'መደበኛ', price: 1200,

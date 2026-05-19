@@ -10,7 +10,7 @@ const PLANS = [
     periodEn: 'Forever',
     color: BRAND.muted,
     features: [
-      '3 subjects only',
+      'English & Biology only',
       'Video lessons & SCORM',
       'Interactive tools',
       'No live tutor sessions',

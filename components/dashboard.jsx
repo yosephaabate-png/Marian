@@ -37,7 +37,11 @@ const WEEKLY_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const WEEKLY_MINUTES = [45, 70, 30, 90, 55, 20, 0];
 
 function Dashboard({ grade, setGrade, navigate, demoPlan }) {
-  const courses = COURSES[grade] || COURSES[9];
+  const allCourses = COURSES[grade] || COURSES[9];
+  const FREE_TIER_SUBJECTS = ['English', 'Biology'];
+  const courses = demoPlan === 'free'
+    ? allCourses.filter(c => FREE_TIER_SUBJECTS.includes(c.subject))
+    : allCourses;
   const totalProgress = Math.round(courses.reduce((s, c) => s + c.progress, 0) / courses.length);
   const streak = 12;
   const weeklyGoal = 300; // minutes
