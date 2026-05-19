@@ -40,7 +40,7 @@ function Signup({ navigate, onGoogle, onComplete, setEnrolledGrade }) {
       if (!form.region) e.region = 'Select a region';
     }
     if (step === 2) {
-      if (form.subjects.length === 0) e.subjects = 'Select at least one subject';
+      if (form.plan !== 'free' && form.subjects.length === 0) e.subjects = 'Select at least one subject';
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -210,40 +210,100 @@ function Signup({ navigate, onGoogle, onComplete, setEnrolledGrade }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <h3 style={{ margin: '0 0 4px', fontFamily: 'Playfair Display, Georgia, serif', fontSize: 18 }}>Choose Your Subjects</h3>
             <p style={{ margin: 0, fontSize: 13, color: BRAND.muted }}>Select the subjects you want to enroll in. Your plan determines how many you can access.</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {SUBJECTS_ALL.map(s => {
-                const active = form.subjects.includes(s);
-                const color = SUBJECT_COLORS[s] || BRAND.primary;
-                return (
-                  <button
-                    key={s}
-                    onClick={() => toggleSubject(s)}
-                    style={{
-                      padding: '13px 16px', borderRadius: 9,
-                      border: `2px solid ${active ? color : BRAND.border}`,
-                      background: active ? `${color}12` : '#fff',
-                      color: active ? color : BRAND.text,
-                      fontFamily: 'Plus Jakarta Sans, sans-serif', fontWeight: active ? 700 : 500,
-                      fontSize: 14, cursor: 'pointer', textAlign: 'left',
-                      display: 'flex', alignItems: 'center', gap: 10,
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    <span style={{
-                      width: 20, height: 20, borderRadius: 4, flexShrink: 0,
-                      background: active ? color : '#f3f4f6',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 12, color: active ? '#fff' : BRAND.muted,
-                    }}>{active ? '✓' : ''}</span>
-                    {s}
-                  </button>
-                );
-              })}
+
+            {/* Plan selector */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              {[
+                { id: 'free', label: 'Free', sub: 'English & Biology' },
+                { id: 'standard', label: 'Standard', sub: 'All 8 subjects' },
+                { id: 'premium', label: 'Premium', sub: 'All 8 subjects' },
+              ].map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => {
+                    set('plan', p.id);
+                    if (p.id === 'free') set('subjects', ['English', 'Biology']);
+                    else set('subjects', []);
+                  }}
+                  style={{
+                    flex: 1, padding: '10px 8px', borderRadius: 8, cursor: 'pointer',
+                    border: `2px solid ${form.plan === p.id ? BRAND.primary : BRAND.border}`,
+                    background: form.plan === p.id ? `${BRAND.primary}10` : '#fff',
+                    fontFamily: 'Plus Jakarta Sans, sans-serif', textAlign: 'center',
+                  }}
+                >
+                  <div style={{ fontWeight: 700, fontSize: 13, color: form.plan === p.id ? BRAND.primary : BRAND.dark }}>{p.label}</div>
+                  <div style={{ fontSize: 10, color: BRAND.muted, marginTop: 2 }}>{p.sub}</div>
+                </button>
+              ))}
             </div>
+
+            {form.plan === 'free' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ fontSize: 12, color: BRAND.muted, background: `${BRAND.primary}0d`, border: `1px solid ${BRAND.primary}33`, padding: '10px 14px', borderRadius: 8 }}>
+                  The free plan includes <strong>English</strong> and <strong>Biology</strong> only. Upgrade to Standard or Premium to access all subjects.
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  {['English', 'Biology'].map(s => {
+                    const color = SUBJECT_COLORS[s] || BRAND.primary;
+                    return (
+                      <div
+                        key={s}
+                        style={{
+                          padding: '13px 16px', borderRadius: 9,
+                          border: `2px solid ${color}`,
+                          background: `${color}12`,
+                          color: color,
+                          fontFamily: 'Plus Jakarta Sans, sans-serif', fontWeight: 700,
+                          fontSize: 14, textAlign: 'left',
+                          display: 'flex', alignItems: 'center', gap: 10,
+                        }}
+                      >
+                        <span style={{
+                          width: 20, height: 20, borderRadius: 4, flexShrink: 0,
+                          background: color,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 12, color: '#fff',
+                        }}>✓</span>
+                        {s}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {SUBJECTS_ALL.map(s => {
+                  const active = form.subjects.includes(s);
+                  const color = SUBJECT_COLORS[s] || BRAND.primary;
+                  return (
+                    <button
+                      key={s}
+                      onClick={() => toggleSubject(s)}
+                      style={{
+                        padding: '13px 16px', borderRadius: 9,
+                        border: `2px solid ${active ? color : BRAND.border}`,
+                        background: active ? `${color}12` : '#fff',
+                        color: active ? color : BRAND.text,
+                        fontFamily: 'Plus Jakarta Sans, sans-serif', fontWeight: active ? 700 : 500,
+                        fontSize: 14, cursor: 'pointer', textAlign: 'left',
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <span style={{
+                        width: 20, height: 20, borderRadius: 4, flexShrink: 0,
+                        background: active ? color : '#f3f4f6',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 12, color: active ? '#fff' : BRAND.muted,
+                      }}>{active ? '✓' : ''}</span>
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             {errors.subjects && <span style={errStyle}>{errors.subjects}</span>}
-            <div style={{ fontSize: 12, color: BRAND.muted, background: BRAND.cream, padding: '10px 14px', borderRadius: 8 }}>
-              <strong>Free plan:</strong> up to 3 subjects · <strong>Standard/Premium:</strong> all subjects
-            </div>
           </div>
         )}
 
